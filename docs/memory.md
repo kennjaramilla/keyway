@@ -14,11 +14,17 @@ Status and hand-off notes. Update this file at the end of each work session.
 - Docs: CLAUDE.md, TESTING.md, ADRs 0001-0003, and the Claude skills `new-feature` and `qa`.
 - Deployed: https://kenn-keyway.vercel.app (Vercel project `keyway`, git-connected, production branch `main`).
 
-**Next (phase 2, see `docs/spec/user-stories.md`):**
+**Phase 2, engineer B (done):**
 
-- Engineer A, requests: submit form (E2E-1), detail + timeline, coordinator workflow (triage/assign/schedule/start/resolve, E2E-3), queue filters and sort. Add the schedule-window schema (building-local hours) to `requests/schema.ts`.
-- Engineer B: messages (optimistic send + rollback, `?fail=messages`, E2E-4), house-rules assistant (`retrieval.ts`, `/api/assistant`, E2E-5), manager dashboard (charts + table alternative). Replace the placeholder pages in `src/app/(workspace)/{messages,house-rules,dashboard}`.
-- Both: tenant isolation E2E-2 (detail page 404 view), and PRODUCTION-READINESS.md, docs/application-flow.md and docs/code-tour.md.
+- Messages (stories 3.1-3.5): `/messages` inbox (unread counts, last-message preview) and `/messages/[requestId]`. Optimistic send via an outbox reducer (`features/messages/outbox.ts`): "Sending…", then sent, or "Not sent" + Retry, a toast and the text restored. `?fail=messages` arms a one-shot 500 (`mocks/demo-failures.ts`). 5s polling (paused when hidden), mark-as-read, polite live region. Reusable `MessageThread` and `MessageThreadLink` for the request detail page.
+- House rules (4.1-4.3): `features/house-rules/retrieval.ts` (BM25 per house-rules.md, plus one extra guard: the top passage must match at least half the question's terms, so "pay my rent online" doesn't match the laundry rule's "pay"). `/api/assistant` is a real Next route (no MSW handler): it checks the session cookie and `rules:ask`, answers with retrieval, and uses Claude (`claude-sonnet-5-5`, 8s timeout, citations validated) only when `ANTHROPIC_API_KEY` is set, falling back to retrieval on any error. In Vitest, `src/test/assistant-route.ts` routes the endpoint to the handler.
+- E2E: `messages.cy.ts` (E2E-4), `house-rules.cy.ts` (E2E-5), `isolation.cy.ts` (E2E-2, API 404s and building switch across requests, threads and rules).
+
+**Next:**
+
+- Engineer A: requests workflow, detail page (embed `MessageThread` + `MessageThreadLink`; add the "Request not found" page assertion to E2E-2), dashboard.
+- P1 left: unread badge in the nav, "Switch to building" banner for covered-but-inactive deep links, browsing the rules document (4.4).
+- Both: PRODUCTION-READINESS.md, docs/application-flow.md and docs/code-tour.md.
 
 ## How to resume
 
