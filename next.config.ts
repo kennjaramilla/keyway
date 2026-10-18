@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -10,6 +9,9 @@ const nextConfig: NextConfig = {
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
+    },
+    resolveAlias: {
+      "msw/browser": { browser: "msw/browser", default: "./src/mocks/server-stub.ts" },
     },
   },
 };

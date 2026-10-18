@@ -1,7 +1,10 @@
 describe("smoke", () => {
-  it("serves the home page with no accessibility violations", () => {
+  it("sends a signed-out visitor to the demo sign-in page", () => {
     cy.visitFresh("/");
-    cy.findByRole("heading", { level: 1, name: /keyway/i }).should("be.visible");
+    cy.location("pathname").should("eq", "/sign-in");
+    cy.findByRole("heading", { level: 1, name: "Sign in to Keyway" }).should("be.visible");
+    cy.findByText(/no passwords/i).should("be.visible");
+    cy.findByRole("region", { name: "Resident" }).should("be.visible");
     cy.checkPageA11y();
   });
 });

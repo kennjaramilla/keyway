@@ -1,4 +1,5 @@
 import type { Result } from "axe-core";
+import seed from "../../src/mocks/seed.json";
 import {
   DEMO_USER_IDS,
   SESSION_COOKIE,
@@ -10,22 +11,34 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      /** Sign in as a seeded demo user by setting the session cookie (no UI). */
-      signInAs(role: Role): Chainable<void>;
+      /**
+       * Sign in by setting the session cookie (no UI). Defaults: resident Amara,
+       * coordinator Grace, manager Helena; pass a seeded userId for anyone else.
+       */
+      signInAs(role: Role, userId?: string): Chainable<void>;
       /** Visit a page with fresh seed data (clears the persisted mock db). */
-      visitFresh(path: string): Chainable<AUTWindow>;
+      visitFresh(path: string, options?: Partial<VisitOptions>): Chainable<AUTWindow>;
       /** Inject axe and fail on serious/critical WCAG A/AA violations. */
       checkPageA11y(context?: string): Chainable<void>;
     }
   }
 }
 
-Cypress.Commands.add("signInAs", (role: Role) => {
-  cy.setCookie(SESSION_COOKIE, encodeSession({ role, userId: DEMO_USER_IDS[role] }));
+Cypress.Commands.add("signInAs", (role: Role, userId: string = DEMO_USER_IDS[role]) => {
+  const user = seed.users.find((candidate) => candidate.id === userId);
+  const activeBuildingId = user?.buildingIds[0];
+  if (!user || user.role !== role || !activeBuildingId) {
+    throw new Error(`No seeded ${role} with id ${userId}`);
+  }
+  cy.setCookie(
+    SESSION_COOKIE,
+    encodeURIComponent(encodeSession({ role, userId, activeBuildingId })),
+  );
 });
 
-Cypress.Commands.add("visitFresh", (path: string) => {
+Cypress.Commands.add("visitFresh", (path: string, options: Partial<Cypress.VisitOptions> = {}) => {
   return cy.visit(path, {
+    ...options,
     onBeforeLoad(win) {
       win.localStorage.clear();
     },

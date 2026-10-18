@@ -1,12 +1,7 @@
 import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
 import { z } from "zod";
+import { server } from "@/mocks/node";
 import { ApiError, api, buildUrl } from "./api-client";
-
-const server = setupServer();
-beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 
 const itemSchema = z.object({ id: z.string(), name: z.string() });
 

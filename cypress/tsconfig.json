@@ -8,7 +8,9 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "types": ["cypress", "node", "@testing-library/cypress", "cypress-axe"]
+    "types": ["cypress", "node", "@testing-library/cypress", "cypress-axe"],
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": ["**/*.ts", "../cypress.config.ts", "../src/lib/auth/demo-users.ts"]
 }

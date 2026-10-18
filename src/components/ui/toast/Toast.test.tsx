@@ -9,14 +9,14 @@ afterEach(() => act(() => useToastStore.setState({ toasts: [] })));
 
 describe("Toast", () => {
   it("shows a toast with title and description", async () => {
-    const { user } = renderWithProviders(<Success />);
+    const { user } = renderWithProviders(<Success />, { toaster: false });
     await user.click(screen.getByRole("button", { name: "Show success" }));
     expect(await screen.findByText("Request submitted")).toBeInTheDocument();
     expect(screen.getByText("KW-1031 is now New.")).toBeInTheDocument();
   });
 
   it("runs the undo action and dismisses the toast", async () => {
-    const { user } = renderWithProviders(<WithUndo />);
+    const { user } = renderWithProviders(<WithUndo />, { toaster: false });
     await user.click(screen.getByRole("button", { name: "Archive filter" }));
     await user.click(await screen.findByRole("button", { name: "Undo" }));
     expect(await screen.findByText("Filter restored")).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe("Toast", () => {
   });
 
   it("can be dismissed", async () => {
-    const { user } = renderWithProviders(<Success />);
+    const { user } = renderWithProviders(<Success />, { toaster: false });
     await user.click(screen.getByRole("button", { name: "Show success" }));
     await user.click(await screen.findByRole("button", { name: "Dismiss notification" }));
     expect(useToastStore.getState().toasts).toHaveLength(0);
