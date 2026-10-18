@@ -69,9 +69,6 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
             <BrandMark onDark subtitle={`${ROLE_LABELS[current.user.role]} portal`} />
           </Link>
           <SideNav />
-          <p className="mt-auto hidden px-5 pb-5 text-xs text-sidebar-muted md:block">
-            Demo data. Fictional people and buildings.
-          </p>
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
