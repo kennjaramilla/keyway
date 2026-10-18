@@ -1,5 +1,5 @@
 /** Example questions per building, shown as one-click chips. */
-export const SUGGESTED_QUESTIONS: Record<string, readonly string[]> = {
+const SUGGESTED_QUESTIONS: Record<string, readonly string[]> = {
   bld_harbor: [
     "How many dogs or cats can I keep?",
     "What are the quiet hours?",

@@ -12,7 +12,7 @@ function useScopeLabel(scope: PageScope) {
 }
 
 /** "<title> · <scope> · Keyway": the tenant is always visible in the tab. React hoists <title> into <head>. */
-export function PageTitle({ title, scope = "building" }: { title: string; scope?: PageScope }) {
+function PageTitle({ title, scope = "building" }: { title: string; scope?: PageScope }) {
   return <title>{`${title} · ${useScopeLabel(scope)} · Keyway`}</title>;
 }
 

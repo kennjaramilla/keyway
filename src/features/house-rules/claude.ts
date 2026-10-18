@@ -5,23 +5,23 @@ import type { AssistantAnswer, RuleDocument, RulePassage } from "./schema";
 
 /** Claude mode for the assistant (used by /api/assistant when a key is set). */
 
-export const CLAUDE_MODEL = "claude-sonnet-5-5";
-export const CLAUDE_TIMEOUT_MS = 8_000;
+const CLAUDE_MODEL = "claude-sonnet-5-5";
+const CLAUDE_TIMEOUT_MS = 8_000;
 /** Passages sent to Claude (the top retrieval results). */
 export const CLAUDE_PASSAGES = 5;
 
-export const SYSTEM_PROMPT = `You answer residents' questions about their apartment building's house rules.
+const SYSTEM_PROMPT = `You answer residents' questions about their apartment building's house rules.
 Answer ONLY from the numbered passages provided. Do not use outside knowledge.
 Cite every statement with the number of the passage it comes from, in square brackets, for example [1] or [2], matching the order the passages are given.
 Use at most 3 sentences.
 If the passages don't answer the question, reply with exactly this sentence and nothing else: ${FALLBACK_ANSWER}`;
 
 /** Angle brackets are removed so a question can't close or open the prompt's XML-style tags. */
-export function sanitizeQuestion(question: string) {
+function sanitizeQuestion(question: string) {
   return question.replace(/[<>]/g, "");
 }
 
-export function buildPrompt(question: string, passages: readonly RulePassage[]) {
+function buildPrompt(question: string, passages: readonly RulePassage[]) {
   const sources = passages
     .map((passage, index) => `[${index + 1}] §${passage.section} ${passage.title}\n${passage.text}`)
     .join("\n\n");
@@ -32,7 +32,7 @@ export function buildPrompt(question: string, passages: readonly RulePassage[]) 
  * Validate Claude's reply: the exact fallback sentence, or text whose every
  * [n] maps to a provided passage. Throws on anything else.
  */
-export function parseClaudeAnswer(
+function parseClaudeAnswer(
   text: string,
   passages: readonly RulePassage[],
   documents: readonly RuleDocument[],

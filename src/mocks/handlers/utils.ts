@@ -19,7 +19,7 @@ export function problem(
 }
 
 export const unauthorized = () => problem(401, "Not signed in", "Sign in to continue.");
-export const forbidden = () => problem(403, "Forbidden", "You don't have permission to do that.");
+const forbidden = () => problem(403, "Forbidden", "You don't have permission to do that.");
 export const notFound = (what = "Resource") => problem(404, "Not found", `${what} not found.`);
 export const conflict = (code: string, detail: string) =>
   problem(409, "Conflict", detail, { code });

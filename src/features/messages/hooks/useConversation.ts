@@ -10,7 +10,7 @@ import type { ThreadDetail } from "../schema";
 import { unreadCount } from "../unread";
 
 /** How often an open thread checks for new messages while the tab is visible. */
-export const POLL_INTERVAL_MS = 5_000;
+const POLL_INTERVAL_MS = 5_000;
 
 let clientIds = 0;
 
