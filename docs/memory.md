@@ -2,7 +2,7 @@
 
 Status and hand-off notes. Update this file at the end of each work session.
 
-## Status (2026-10-19)
+## Status (2026-10-19, after QA round 1)
 
 **Foundation done:**
 
@@ -24,10 +24,19 @@ Status and hand-off notes. Update this file at the end of each work session.
 - Requests (2.1-2.7): resident submit form (E2E-1; photo preview drawn on a canvas, never uploaded), queue with status/urgency/category filters, search and sort kept in the URL (staff default to open requests), overdue badges, and a detail page with timeline, embedded `MessageThread` and only the next valid workflow steps (E2E-3), optimistic with rollback toasts. A coordinator deep link into another covered building switches to it. Endpoints: `POST /requests`, `POST /requests/:id/{triage|assign|schedule|start|resolve}`, `GET /vendors`. Schedule rules (building-local hours) live in `requests/schema.ts`, shared by the form and the API. E2E-2 now also checks the "Request not found" page.
 - Manager dashboard (5.1): `GET /api/dashboard` computed by `dashboard/metrics.ts`; KPI tiles and four bar charts, each with a "Show table" toggle.
 
+**QA round 1 (done, PRs #21 and #22):**
+
+- Security: same-origin `?next` only (open redirect), security headers and no `x-powered-by`, the theme script is a plain literal and CodeQL ignores the generated MSW worker (0 open alerts), the Claude module is `server-only` and strips `<`/`>` from questions, malformed JSON returns 422, a corrupt stored db reseeds.
+- Behaviour: switching building on a record page no longer reverts (the deep-link auto-switch runs once per request, and the switcher goes to the list page); the dashboard is labelled "All buildings" and hides the switcher; vendors are fetched only for the active building; message send cancels an in-flight poll; workflow steps patch only list fields into list caches; new timeline events record the previous status.
+- UI: header fits at 375px, dashboard tables fit at 1280px and scroll in their card on phones, every time is shown in the building's time zone with its abbreviation, seed visit windows stay on whole hours, focus moves to the page h1 after client-side navigation, one `id="main"`, `EmptyState` heading levels, staff wording for "I don't know".
+- Tests: handler tests split per handler file, Cypress axe runs in light and dark (serious/critical only), dead code removed (tabs, `api.patch`, unused exports).
+- Docs: `PRODUCTION-READINESS.md`, `docs/application-flow.md`, `docs/code-tour.md`.
+
 **Next:**
 
-- P1 left: unread badge in the nav, browsing the rules document (4.4), resident cancel (2.8), manager vendor reassignment UI (2.9, `can()` already allows it), mobile card layout for the queue (6.4), date range on the dashboard (5.2).
-- Both: PRODUCTION-READINESS.md, docs/application-flow.md and docs/code-tour.md.
+- Cut P1/P2 stories: resident cancel (2.8), manager vendor reassignment UI and its test (2.9, `can()` already allows it), reopen (2.10), dashboard date range (5.2), queue as stacked cards below `md` (6.4; for now the table scrolls inside its card with a minimum title width).
+- Also open: unread badge in the nav, browsing the rules document (4.4).
+- Hardening: a full Content-Security-Policy with nonces (needs the inline theme script and MSW worker handled), a signed server session, rate limiting on `/api/assistant`, code-splitting MSW out of the production bundle, bundle and Web Vitals budgets, error tracking.
 
 ## How to resume
 
