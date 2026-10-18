@@ -227,23 +227,19 @@ export function makeRequestCreateSchema(today: string) {
       permissionToEnter: z.boolean({ error: "Choose yes or no." }),
       entryNotes: z.string().trim().max(200, "Keep entry notes under 200 characters.").optional(),
     })
-    .superRefine((value, ctx) => {
-      if (value.urgency !== "emergency" && value.preferredWindows.length === 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["preferredWindows"],
-          message: "Choose at least one time window.",
-        });
-      }
-      const keys = value.preferredWindows.map((window) => `${window.date}:${window.slot}`);
-      if (new Set(keys).size !== keys.length) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["preferredWindows"],
-          message: "Each time window must be different.",
-        });
-      }
-    });
+    .refine((value) => value.urgency === "emergency" || value.preferredWindows.length > 0, {
+      path: ["preferredWindows"],
+      message: "Choose at least one time window.",
+      // Run even when other fields are invalid, so every error shows on the first submit.
+      when: ({ value }) =>
+        Array.isArray((value as { preferredWindows?: unknown }).preferredWindows),
+    })
+    .refine(
+      (value) =>
+        new Set(value.preferredWindows.map((window) => `${window.date}:${window.slot}`)).size ===
+        value.preferredWindows.length,
+      { path: ["preferredWindows"], message: "Each time window must be different." },
+    );
 }
 export type RequestCreateInput = z.input<ReturnType<typeof makeRequestCreateSchema>>;
 export type RequestCreate = z.output<ReturnType<typeof makeRequestCreateSchema>>;
@@ -309,10 +305,16 @@ export function makeScheduleSchema(ctx: ScheduleContext) {
 
 /** The schedule form: a building-local date and times, transformed into a UTC window. */
 export function makeScheduleFormSchema(ctx: ScheduleContext) {
-  const time = z.string().regex(/^\d{2}:\d{2}$/, "Choose a time.");
+  const TIME = /^\d{2}:\d{2}$/;
+  const time = z.string().regex(TIME, "Choose a time.");
   return z
     .object({ date: z.iso.date({ error: "Choose a date." }), startTime: time, endTime: time })
     .superRefine((value, refine) => {
+      const complete =
+        /^\d{4}-\d{2}-\d{2}$/.test(value.date) &&
+        TIME.test(value.startTime) &&
+        TIME.test(value.endTime);
+      if (!complete) return;
       const start = zonedTimeToUtc(value.date, value.startTime, ctx.timeZone);
       const end = zonedTimeToUtc(value.date, value.endTime, ctx.timeZone);
       for (const issue of visitWindowIssues(start, end, ctx)) {

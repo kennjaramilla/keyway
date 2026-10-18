@@ -19,7 +19,6 @@ export function useRequest(id: string) {
   return useQuery({
     queryKey: requestKeys.detail(id),
     queryFn: ({ signal }) => fetchRequest(id, signal),
-    retry: (count, error) => !(error instanceof ApiError && error.isNotFound) && count < 2,
   });
 }
 
