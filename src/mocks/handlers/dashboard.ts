@@ -12,6 +12,8 @@ export const dashboardHandlers = [
     if (denied) return denied;
     const db = getDb();
     const coordinators = db.users.filter((item) => item.role === "coordinator");
-    return HttpResponse.json(computeDashboard(db.requests, db.buildings, coordinators));
+    return HttpResponse.json(
+      computeDashboard(db.requests, db.buildings, coordinators, new Date(), db.vendors),
+    );
   }),
 ];
