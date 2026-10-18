@@ -2,10 +2,10 @@ import { StatusBadge, type BadgeTone } from "@/components/ui/badge";
 import { STATUS_LABELS, URGENCY_LABELS, type Status, type Urgency } from "../schema";
 
 const STATUS_TONES: Record<Status, BadgeTone> = {
-  new: "info",
-  triaged: "primary",
-  scheduled: "warning",
-  in_progress: "neutral",
+  new: "warning",
+  triaged: "neutral",
+  scheduled: "primary",
+  in_progress: "info",
   resolved: "success",
 };
 
