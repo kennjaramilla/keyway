@@ -18,13 +18,18 @@ function storage(): Storage | null {
   }
 }
 
-function load(): Db {
-  const raw = storage()?.getItem(STORAGE_KEY);
-  if (raw) {
-    const parsed = dbSchema.safeParse(JSON.parse(raw));
-    if (parsed.success) return parsed.data;
+function readStored(): unknown {
+  try {
+    return JSON.parse(storage()?.getItem(STORAGE_KEY) ?? "null");
+  } catch {
+    return null;
   }
-  return createSeed();
+}
+
+/** The persisted db, or a fresh seed when it's missing, corrupt or from an older shape. */
+function load(): Db {
+  const parsed = dbSchema.safeParse(readStored());
+  return parsed.success ? parsed.data : createSeed();
 }
 
 function persist(db: Db) {

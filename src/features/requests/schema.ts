@@ -232,7 +232,7 @@ export function makeRequestCreateSchema(today: string) {
       message: "Choose at least one time window.",
       // Run even when other fields are invalid, so every error shows on the first submit.
       when: ({ value }) =>
-        Array.isArray((value as { preferredWindows?: unknown }).preferredWindows),
+        Array.isArray((value as { preferredWindows?: unknown } | null)?.preferredWindows),
     })
     .refine(
       (value) =>
