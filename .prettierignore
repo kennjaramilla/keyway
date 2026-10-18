@@ -7,3 +7,4 @@ public/mockServiceWorker.js
 package-lock.json
 cypress/screenshots
 cypress/videos
+docs/spec
