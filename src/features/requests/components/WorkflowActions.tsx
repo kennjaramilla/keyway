@@ -217,7 +217,9 @@ export function sortVendors(vendors: Vendor[], category: Vendor["trade"]) {
 }
 
 function AssignDialog({ request, run, disabled, onFinished }: DialogProps) {
-  const vendors = useVendors(request.buildingId);
+  const { user } = useCurrentSession();
+  // The vendors API is scoped to the active building; don't refetch the old one mid-switch.
+  const vendors = useVendors(request.buildingId, request.buildingId === user.activeBuildingId);
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(z.object({ vendorId: z.string().min(1, "Choose a vendor.") })),
     defaultValues: { vendorId: request.vendorId ?? "" },
