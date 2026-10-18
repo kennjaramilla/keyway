@@ -12,6 +12,16 @@ describe("tenant isolation", () => {
     cy.checkPageA11y();
   });
 
+  it("shows 'Request not found' on another unit's request detail", () => {
+    cy.signInAs("resident", "usr_res_diego");
+    cy.visitFresh("/requests/req_023");
+    cy.findByRole("heading", { level: 1, name: "Request not found" }).should("be.visible");
+    cy.findByText("Dishwasher leaves dishes wet and cloudy").should("not.exist");
+    cy.findByRole("link", { name: "All requests" }).should("be.visible");
+    cy.title().should("eq", "Request not found · Harbor View Lofts · Keyway");
+    cy.checkPageA11y();
+  });
+
   it("hides uncovered buildings from a coordinator (404)", () => {
     cy.signInAs("coordinator", "usr_coord_theo");
     cy.visitFresh("/messages");
@@ -38,6 +48,8 @@ describe("tenant isolation", () => {
       .and("not.contain.text", "KW-1017");
 
     cy.findByRole("link", { name: "Requests" }).click();
+    cy.findByRole("table").findAllByRole("row").should("have.length", 8); // header + 7 open
+    cy.findByRole("checkbox", { name: "Resolved" }).click();
     cy.findByRole("table").findAllByRole("row").should("have.length", 12); // header + 11 Maple Court
     cy.findByRole("table").should("not.contain.text", "Water heater leaking onto the floor");
 

@@ -34,7 +34,7 @@ describe("Button", () => {
   it("renders its child with button styles when asChild is set", () => {
     renderWithProviders(
       <Primary asChild>
-        <a href="/requests/new">New request</a>
+        <a href="https://example.com/new">New request</a>
       </Primary>,
     );
     expect(screen.getByRole("link", { name: "New request" })).toHaveClass("bg-primary");
