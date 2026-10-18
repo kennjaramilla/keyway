@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, ClipboardList, Gauge, Info, Wrench } from "lucide-react";
+import { ChevronRight, ClipboardList, Gauge, Wrench } from "lucide-react";
 import { BrandMark } from "@/components/shell/BrandMark";
 import { Avatar } from "@/components/ui/avatar";
 import { ErrorState } from "@/components/ui/error-state";
@@ -65,14 +65,6 @@ export function SignInScreen() {
             Choose a person to see the portal from their point of view.
           </p>
         </header>
-
-        <p className="flex items-start gap-2 rounded-md border border-border bg-info-soft px-4 py-3 text-sm text-fg">
-          <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-info" />
-          <span>
-            <strong className="font-semibold">Demo only:</strong> no passwords. Data is fictional
-            and stored in your browser.
-          </span>
-        </p>
 
         {people.isPending && <SkeletonList rows={4} label="Loading people" />}
         {people.isError && (
