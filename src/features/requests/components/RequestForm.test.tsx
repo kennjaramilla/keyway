@@ -3,7 +3,7 @@ import { getDb } from "@/mocks/db";
 import { server } from "@/mocks/node";
 import { mockRouter } from "@/test/next-navigation";
 import userEvent from "@testing-library/user-event";
-import { renderInWorkspace, screen, within } from "@/test/render";
+import { renderInWorkspace, screen, waitFor, within } from "@/test/render";
 import { addDays, localDate } from "../time";
 import { RequestForm } from "./RequestForm";
 
@@ -66,8 +66,14 @@ describe("RequestForm", () => {
   });
 
   it("previews a photo locally, rejects other files, and removes it", async () => {
-    URL.createObjectURL = vi.fn(() => "blob:preview");
-    URL.revokeObjectURL = vi.fn();
+    const drawImage = vi.fn();
+    vi.stubGlobal(
+      "createImageBitmap",
+      vi.fn(async () => ({ width: 200, height: 100, close: vi.fn() })),
+    );
+    const getContext = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+      drawImage,
+    } as unknown as CanvasRenderingContext2D);
     const { user } = await renderForm();
     const input = screen.getByLabelText("Photo (optional)");
     expect(input).toHaveAccessibleDescription(expect.stringContaining("It isn't uploaded."));
@@ -79,14 +85,27 @@ describe("RequestForm", () => {
     expect(screen.getByText("Choose a JPG, PNG or WebP image.")).toBeInTheDocument();
 
     await user.upload(input, new File(["x"], "leak.png", { type: "image/png" }));
-    expect(screen.getByRole("img", { name: "Preview of leak.png" })).toHaveAttribute(
-      "src",
-      "blob:preview",
-    );
+    expect(screen.getByRole("img", { name: "Preview of leak.png" })).toBeInTheDocument();
+    await waitFor(() => expect(drawImage).toHaveBeenCalled());
     await user.click(screen.getByRole("button", { name: "Remove photo" }));
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:preview");
     expect(input).toHaveFocus();
+    getContext.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
+  it("explains an image it can't read", async () => {
+    vi.stubGlobal(
+      "createImageBitmap",
+      vi.fn(async () => Promise.reject(new Error("bad"))),
+    );
+    const { user } = await renderForm();
+    await user.upload(
+      screen.getByLabelText("Photo (optional)"),
+      new File(["x"], "broken.jpg", { type: "image/jpeg" }),
+    );
+    expect(await screen.findByText(/couldn't read that image/i)).toBeInTheDocument();
+    vi.unstubAllGlobals();
   });
 
   it("submits, toasts and opens the new request", async () => {

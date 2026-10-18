@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 
 const ACCEPTED = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 10 * 1024 * 1024;
+const PREVIEW_PX = 112;
 
 /** Validate a chosen photo; returns an error message or null. */
 export function photoError(file: File) {
@@ -15,18 +16,44 @@ export function photoError(file: File) {
   return null;
 }
 
-/** Optional photo with a local preview. It is never uploaded, so it isn't part of the form values. */
+/**
+ * Optional photo with a local preview. It is never uploaded, so it isn't part
+ * of the form values. The preview is drawn on a canvas, so no URL is built from the file.
+ */
 export function PhotoField() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    if (preview) return () => URL.revokeObjectURL(preview.url);
-  }, [preview]);
+    if (!photo) return;
+    let cancelled = false;
+    createImageBitmap(photo)
+      .then((bitmap) => {
+        const context = canvasRef.current?.getContext("2d");
+        if (cancelled || !context) return bitmap.close();
+        // Cover-crop into the square preview.
+        const scale = Math.max(PREVIEW_PX / bitmap.width, PREVIEW_PX / bitmap.height);
+        const width = bitmap.width * scale;
+        const height = bitmap.height * scale;
+        context.drawImage(
+          bitmap,
+          (PREVIEW_PX - width) / 2,
+          (PREVIEW_PX - height) / 2,
+          width,
+          height,
+        );
+        bitmap.close();
+      })
+      .catch(() => !cancelled && setError("We couldn't read that image. Try another one."));
+    return () => {
+      cancelled = true;
+    };
+  }, [photo]);
 
   const clear = () => {
-    setPreview(null);
+    setPhoto(null);
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -50,19 +77,18 @@ export function PhotoField() {
               const problem = photoError(file);
               setError(problem ?? undefined);
               if (problem) return clear();
-              const url = URL.createObjectURL(file);
-              // Only ever render a local blob: preview, never a URL derived from user text.
-              if (!url.startsWith("blob:")) return clear();
-              setPreview({ url, name: file.name });
+              setPhoto(file);
             }}
           />
-          {preview && (
+          {photo && (
             <div className="flex flex-wrap items-center gap-4">
-              {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview */}
-              <img
-                src={preview.url}
-                alt={`Preview of ${preview.name}`}
-                className="h-28 w-28 rounded-md border border-border object-cover"
+              <canvas
+                ref={canvasRef}
+                role="img"
+                aria-label={`Preview of ${photo.name}`}
+                width={PREVIEW_PX}
+                height={PREVIEW_PX}
+                className="size-28 rounded-md border border-border bg-surface-muted"
               />
               <Button
                 variant="secondary"
