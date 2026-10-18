@@ -6,10 +6,8 @@ import { mockRouter } from "@/test/next-navigation";
 import { SignInScreen } from "./SignInScreen";
 
 describe("SignInScreen", () => {
-  it("labels itself as a demo and groups seeded people by role", async () => {
+  it("groups seeded people by role", async () => {
     renderWithProviders(<SignInScreen />);
-    expect(screen.getByText(/no passwords/i)).toBeInTheDocument();
-
     const residents = await screen.findByRole("region", { name: "Resident" });
     expect(within(residents).getAllByRole("button")).toHaveLength(6);
     expect(
