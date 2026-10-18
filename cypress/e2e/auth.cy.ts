@@ -41,6 +41,12 @@ describe("sign-in and route gating", () => {
     cy.location("pathname").should("eq", "/house-rules");
   });
 
+  it("keeps an off-site ?next on this site", () => {
+    cy.visitFresh("/sign-in?next=/%5Cexample.com/x");
+    cy.findByRole("button", { name: /Amara Okafor/ }).click();
+    cy.location("pathname").should("eq", "/requests");
+  });
+
   it("blocks a resident from the dashboard with a no-access page", () => {
     cy.signInAs("resident");
     cy.visitFresh("/dashboard");
