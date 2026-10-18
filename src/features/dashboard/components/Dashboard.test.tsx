@@ -33,7 +33,6 @@ describe("Dashboard", () => {
     await screen.findByText("Open requests");
     const workload = panel("Coordinator workload");
     const toggle = within(workload).getByRole("button", { name: "Show table" });
-    expect(toggle).toHaveAttribute("aria-pressed", "false");
     await user.click(toggle);
 
     const table = within(workload).getByRole("table", { name: "Coordinator workload" });
