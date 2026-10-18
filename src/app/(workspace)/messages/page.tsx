@@ -1,19 +1,22 @@
 "use client";
 
-import { Construction } from "lucide-react";
 import { PageHeader } from "@/components/shell/PageHeader";
-import { EmptyState } from "@/components/ui/empty-state";
+import { ThreadList } from "@/features/messages/components/ThreadList";
+import { useCurrentSession } from "@/features/session/hooks";
 
-// Placeholder: replaced by the Messages feature.
-export default function Page() {
+export default function MessagesPage() {
+  const { user, unit } = useCurrentSession();
   return (
     <>
-      <PageHeader title="Messages" />
-      <EmptyState
-        icon={<Construction />}
-        title="Coming soon"
-        description="This part of Keyway is still being built."
+      <PageHeader
+        title="Messages"
+        description={
+          user.role === "resident" && unit
+            ? `Conversations with your coordinator about unit ${unit.label}`
+            : "Conversations with residents in this building"
+        }
       />
+      <ThreadList />
     </>
   );
 }
