@@ -68,8 +68,8 @@ export function RequestDetailView({ id }: { id: string }) {
     const missing = request.error instanceof ApiError && request.error.isNotFound;
     return (
       <>
-        <PageHeader title={missing ? "Request not found" : "Request"} />
         {backLink}
+        <PageHeader title={missing ? "Request not found" : "Request"} />
         {missing ? (
           <EmptyState
             icon={<SearchX />}
