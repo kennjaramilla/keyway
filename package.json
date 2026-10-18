@@ -21,6 +21,7 @@
     "start:e2e": "next start -p 3100"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "@hookform/resolvers": "^5.9.2",
     "@tanstack/react-query": "^5.104.4",
     "class-variance-authority": "^0.7.1",

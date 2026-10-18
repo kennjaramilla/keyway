@@ -37,6 +37,7 @@ export const assistantAnswerSchema = z.object({
       passageId: z.string(),
       section: z.string(),
       title: z.string(),
+      documentTitle: z.string(),
       excerpt: z.string(),
     }),
   ),
