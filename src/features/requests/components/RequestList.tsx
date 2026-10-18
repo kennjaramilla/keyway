@@ -1,9 +1,9 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Clock, Plus, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { StatusBadge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +25,7 @@ import {
 import { useCurrentSession } from "@/features/session/hooks";
 import { can } from "@/lib/auth/permissions";
 import { formatDate } from "@/lib/datetime";
+import { PHONE_QUERY, useMediaQuery } from "@/lib/use-media-query";
 import { formatAge, formatVisitWindow } from "../format";
 import { useRequests } from "../hooks/useRequests";
 import {
@@ -69,6 +70,7 @@ export function RequestList() {
   const base = useMemo(() => defaultQueue(user.role), [user.role]);
   const [state, setState] = useState(() => parseQueue(new URLSearchParams(searchParams), base));
   const staff = user.role !== "resident";
+  const phone = useMediaQuery(PHONE_QUERY);
 
   const update = (next: QueueState) => {
     setState(next);
@@ -111,7 +113,13 @@ export function RequestList() {
 
   return (
     <div className="grid gap-4">
-      <QueueFilters state={state} onChange={update} onReset={() => update(base)} base={base} />
+      <QueueFilters
+        state={state}
+        onChange={update}
+        onReset={() => update(base)}
+        base={base}
+        collapsible={phone}
+      />
       <p aria-live="polite" className="text-sm text-fg-muted">
         Showing {visible.length} of {requests.data.length} requests
       </p>
@@ -138,6 +146,17 @@ export function RequestList() {
             )
           }
         />
+      ) : phone ? (
+        <ul aria-label="Maintenance requests" className="grid gap-3">
+          {visible.map((request) => (
+            <RequestCard
+              key={request.id}
+              request={request}
+              staff={staff}
+              timeZone={activeBuilding.timezone}
+            />
+          ))}
+        </ul>
       ) : (
         <Table>
           <caption className="sr-only">Maintenance requests</caption>
@@ -241,17 +260,67 @@ function RequestRow({
   );
 }
 
+/** Phone layout: one card per request; the title link covers the card. */
+function RequestCard({
+  request,
+  staff,
+  timeZone,
+}: {
+  request: RequestListItem;
+  staff: boolean;
+  timeZone: string;
+}) {
+  return (
+    <li className="relative rounded-lg border border-border bg-surface p-4 shadow-sm focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring">
+      <div className="flex items-start justify-between gap-3">
+        <Link
+          href={`/requests/${request.id}`}
+          className="font-semibold text-fg outline-none after:absolute after:inset-0 after:rounded-lg"
+        >
+          {request.title}
+        </Link>
+        <RequestStatusBadge status={request.status} />
+      </div>
+      <p className="mt-1 text-sm font-medium text-primary">
+        {request.number}
+        {staff && ` · Unit ${request.unitLabel} · ${CATEGORY_LABELS[request.category]}`}
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-fg-muted">
+        <UrgencyBadge urgency={request.urgency} />
+        {isOverdue(request) && <StatusBadge tone="danger">Overdue</StatusBadge>}
+        <span className="ml-auto flex items-center gap-1">
+          <Clock aria-hidden className="size-3.5" />
+          <time dateTime={request.createdAt}>
+            {staff
+              ? `${formatAge(request.createdAt)} old`
+              : formatDate(request.createdAt, timeZone)}
+          </time>
+        </span>
+      </div>
+      {!staff && request.visitWindow && request.status === "scheduled" && (
+        <p className="mt-2 text-xs text-fg-muted">
+          Visit: {formatVisitWindow(request.visitWindow, timeZone)}
+        </p>
+      )}
+    </li>
+  );
+}
+
 function QueueFilters({
   state,
   base,
   onChange,
   onReset,
+  collapsible,
 }: {
   state: QueueState;
   base: QueueState;
   onChange: (state: QueueState) => void;
   onReset: () => void;
+  collapsible: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   const toggleStatus = (status: (typeof STATUSES)[number], checked: boolean) =>
     onChange({
       ...state,
@@ -260,12 +329,40 @@ function QueueFilters({
         : state.statuses.filter((value) => value !== status),
     });
 
+  const filtered = !isUnfiltered(state, base);
+  if (collapsible && !open) {
+    return (
+      <Button
+        variant="secondary"
+        className="justify-self-start"
+        aria-expanded={false}
+        onClick={() => setOpen(true)}
+      >
+        <SlidersHorizontal aria-hidden />
+        {filtered ? "Filters (on)" : "Filters"}
+      </Button>
+    );
+  }
+
   return (
     <div
+      id={panelId}
       role="search"
       aria-label="Filter requests"
       className="grid gap-4 rounded-lg border border-border bg-surface p-4"
     >
+      {collapsible && (
+        <Button
+          variant="link"
+          size="sm"
+          className="justify-self-end"
+          aria-expanded
+          aria-controls={panelId}
+          onClick={() => setOpen(false)}
+        >
+          Hide filters
+        </Button>
+      )}
       <div className="grid gap-4 sm:grid-cols-3">
         <FormField label="Search">
           {(control) => (
@@ -311,7 +408,7 @@ function QueueFilters({
             onCheckedChange={(checked) => toggleStatus(status, checked === true)}
           />
         ))}
-        {!isUnfiltered(state, base) && (
+        {filtered && (
           <Button variant="link" size="sm" onClick={onReset}>
             Clear filters
           </Button>
