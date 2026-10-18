@@ -25,6 +25,15 @@ describe("seed", () => {
     expect(request?.preferredWindows[0]?.date).toBe("2026-10-02");
   });
 
+  it("keeps visit windows on whole hours", () => {
+    const request = createSeed(anchor + 97 * 60_000).requests.find((item) => item.id === "req_017");
+    // Seeded 12:00-14:00Z; 1h37m later rounds to a 2h shift.
+    expect(request?.visitWindow).toEqual({
+      start: "2026-10-19T14:00:00.000Z",
+      end: "2026-10-19T16:00:00.000Z",
+    });
+  });
+
   it("does not shift rule document effective dates", () => {
     const db = createSeed(anchor + 100 * 86_400_000);
     expect(db.ruleDocuments[0]?.effectiveDate).toBe("2026-01-01");

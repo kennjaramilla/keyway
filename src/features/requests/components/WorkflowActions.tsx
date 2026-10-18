@@ -16,6 +16,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { useCurrentSession } from "@/features/session/hooks";
 import type { Vendor } from "@/features/vendors/schema";
 import { can } from "@/lib/auth/permissions";
+import { timeZoneAbbreviation } from "@/lib/datetime";
 import type { WorkflowInput } from "../api";
 import { useVendors, useWorkflowAction } from "../hooks/useRequest";
 import {
@@ -283,7 +284,11 @@ function AssignDialog({ request, run, disabled, onFinished }: DialogProps) {
 function ScheduleDialog({ request, run, disabled, onFinished }: DialogProps) {
   const timeZone = request.timeZone;
   const today = localDate(new Date(), timeZone);
-  const current = request.visitWindow;
+  // Reschedules start from the booked window if it's still ahead; otherwise tomorrow 10-12, always valid.
+  const current =
+    request.visitWindow && new Date(request.visitWindow.start) > new Date()
+      ? request.visitWindow
+      : null;
   const { register, handleSubmit, formState } = useForm({
     // Rebuilt per submit so "in the future" is checked against the current time.
     resolver: (values, context, options) =>
@@ -307,7 +312,7 @@ function ScheduleDialog({ request, run, disabled, onFinished }: DialogProps) {
     <ActionDialog
       label={rescheduling ? "Reschedule" : "Schedule visit"}
       title={`${rescheduling ? "Reschedule" : "Schedule"} the visit for ${request.number}`}
-      description={`Times are in ${request.buildingName} local time. Visits are 1 to 4 hours, between 8:00 and 20:00 unless it's an emergency.`}
+      description={`Times are in ${request.buildingName} time (${timeZoneAbbreviation(timeZone)}). Visits are 1 to 4 hours, between 8:00 and 20:00 unless it's an emergency.`}
       variant={rescheduling ? "secondary" : "primary"}
       disabled={disabled || noVendor}
       hint={noVendor ? "Assign a vendor first" : undefined}

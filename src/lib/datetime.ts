@@ -22,3 +22,9 @@ export const formatDateTime = (iso: string, timeZone: string) =>
 /** "Oct 19, 2026" */
 export const formatDate = (iso: string, timeZone: string) =>
   zonedFormatter(timeZone, DATE).format(new Date(iso));
+
+/** "EDT" (or "EST"): the zone's abbreviation at a given moment. */
+export const timeZoneAbbreviation = (timeZone: string, at: Date = new Date()) =>
+  zonedFormatter(timeZone, { timeZoneName: "short" })
+    .formatToParts(at)
+    .find((part) => part.type === "timeZoneName")?.value ?? timeZone;

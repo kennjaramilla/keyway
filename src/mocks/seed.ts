@@ -27,12 +27,16 @@ export type Db = z.infer<typeof dbSchema>;
 
 const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?Z$/;
 const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
 
 function shiftDate(isoDate: string, days: number) {
   return new Date(Date.parse(`${isoDate}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
 }
 
-/** Shift every ISO timestamp by deltaMs, and every preferred-window date by whole days. */
+/**
+ * Shift every ISO timestamp by deltaMs, and every preferred-window date by whole days.
+ * Visit windows move by whole hours so they stay on the clock times they were booked for.
+ */
 function shift(value: unknown, deltaMs: number, deltaDays: number, key?: string): unknown {
   if (typeof value === "string") {
     return ISO_DATETIME.test(value) ? new Date(Date.parse(value) + deltaMs).toISOString() : value;
@@ -46,7 +50,15 @@ function shift(value: unknown, deltaMs: number, deltaDays: number, key?: string)
   }
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [k, shift(v, deltaMs, deltaDays, k)]),
+      Object.entries(value).map(([k, v]) => [
+        k,
+        shift(
+          v,
+          k === "visitWindow" ? Math.round(deltaMs / HOUR_MS) * HOUR_MS : deltaMs,
+          deltaDays,
+          k,
+        ),
+      ]),
     );
   }
   return value;
