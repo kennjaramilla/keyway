@@ -25,7 +25,8 @@ export function RequestTimeline({ request }: { request: RequestDetail }) {
   return (
     <ol aria-label="Timeline" className="relative grid gap-5 border-l border-border pl-5">
       {request.timeline.map((event) => {
-        const detail = eventDetail(event, request);
+        // Seeded events often describe the vendor or window in their note already.
+        const detail = event.note ? undefined : eventDetail(event, request);
         return (
           <li key={event.id} className="relative">
             <span
