@@ -12,6 +12,8 @@ const meta = {
       options: ["primary", "secondary", "ghost", "danger", "link"],
     },
     size: { control: "inline-radio", options: ["sm", "md", "lg"] },
+    // asChild needs a single element child (e.g. a Link); see the AsLink story.
+    asChild: { table: { disable: true } },
   },
 } satisfies Meta<typeof Button>;
 
@@ -31,6 +33,9 @@ export const WithIcon: Story = {
       </>
     ),
   },
+};
+export const AsLink: Story = {
+  args: { asChild: true, children: <a href="#new">New request</a> },
 };
 export const Loading: Story = { args: { loading: true, children: "Saving" } };
 export const Disabled: Story = { args: { disabled: true } };
