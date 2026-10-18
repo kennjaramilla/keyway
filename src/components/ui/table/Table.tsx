@@ -26,7 +26,10 @@ export function TableHead({ className, scope = "col", ...props }: ComponentProps
   return (
     <th
       scope={scope}
-      className={cn("px-4 py-2.5 text-xs font-semibold tracking-wide uppercase", className)}
+      className={cn(
+        "px-4 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap uppercase",
+        className,
+      )}
       {...props}
     />
   );
@@ -62,7 +65,7 @@ export function SortableHead({
       <button
         type="button"
         onClick={onSort}
-        className="flex w-full items-center gap-1.5 px-4 py-2.5 text-xs font-semibold tracking-wide uppercase hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        className="flex w-full items-center gap-1.5 px-4 py-2.5 text-xs font-semibold tracking-wide whitespace-nowrap uppercase hover:text-fg focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
       >
         {children}
         <Icon aria-hidden className={cn("size-3.5", !direction && "opacity-50")} />
