@@ -1,8 +1,9 @@
+import "server-only";
 import type Anthropic from "@anthropic-ai/sdk";
 import { dontKnow, FALLBACK_ANSWER, toCitation } from "./retrieval";
 import type { AssistantAnswer, RuleDocument, RulePassage } from "./schema";
 
-/** Server-only: Claude mode for the assistant (used by /api/assistant when a key is set). */
+/** Claude mode for the assistant (used by /api/assistant when a key is set). */
 
 export const CLAUDE_MODEL = "claude-sonnet-5-5";
 export const CLAUDE_TIMEOUT_MS = 8_000;
@@ -15,11 +16,16 @@ Cite every statement with the number of the passage it comes from, in square bra
 Use at most 3 sentences.
 If the passages don't answer the question, reply with exactly this sentence and nothing else: ${FALLBACK_ANSWER}`;
 
+/** Angle brackets are removed so a question can't close or open the prompt's XML-style tags. */
+export function sanitizeQuestion(question: string) {
+  return question.replace(/[<>]/g, "");
+}
+
 export function buildPrompt(question: string, passages: readonly RulePassage[]) {
   const sources = passages
     .map((passage, index) => `[${index + 1}] §${passage.section} ${passage.title}\n${passage.text}`)
     .join("\n\n");
-  return `<passages>\n${sources}\n</passages>\n\n<question>\n${question}\n</question>`;
+  return `<passages>\n${sources}\n</passages>\n\n<question>\n${sanitizeQuestion(question)}\n</question>`;
 }
 
 /**
