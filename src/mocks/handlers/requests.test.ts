@@ -111,6 +111,13 @@ describe("workflow actions", () => {
     const resolved = await post("/requests/req_030/resolve", { resolutionNote: "Replaced valve." });
     expect(resolved.status).toBe("resolved");
     expect(resolved.resolvedAt).not.toBeNull();
+    expect(resolved.timeline.slice(1).map((event) => [event.fromStatus, event.toStatus])).toEqual([
+      ["new", "triaged"],
+      ["triaged", "triaged"],
+      ["triaged", "scheduled"],
+      ["scheduled", "in_progress"],
+      ["in_progress", "resolved"],
+    ]);
     expect(resolved.timeline.map((event) => event.type)).toEqual([
       "created",
       "triaged",

@@ -66,13 +66,15 @@ function record(
   changes: Partial<MaintenanceRequest> = {},
 ) {
   const at = new Date().toISOString();
+  // Read before writing: `request` may be the same object as the db row being updated.
+  const fromStatus = request.status;
   return updateDb((db) => {
     const target = db.requests.find((item) => item.id === request.id)!;
     Object.assign(target, changes, { status: to, updatedAt: at });
     target.timeline.push({
       id: nextId("evt"),
       at,
-      fromStatus: request.status,
+      fromStatus,
       toStatus: to,
       ...event,
     });
