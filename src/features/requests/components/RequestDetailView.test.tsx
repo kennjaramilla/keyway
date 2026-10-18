@@ -37,6 +37,13 @@ describe("RequestDetailView", () => {
     expect(await screen.findByRole("region", { name: "Messages" })).toBeInTheDocument();
   });
 
+  it("nests the empty messages heading under the Messages card", async () => {
+    await openDetail("req_030", "resident");
+    expect(
+      await screen.findByRole("heading", { level: 3, name: "No messages yet" }),
+    ).toBeInTheDocument();
+  });
+
   it("leaves messages out for the manager", async () => {
     await openDetail("req_001", "manager");
     expect(screen.queryByRole("region", { name: "Messages" })).not.toBeInTheDocument();

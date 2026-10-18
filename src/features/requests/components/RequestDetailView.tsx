@@ -155,7 +155,7 @@ export function RequestDetailView({ id }: { id: string }) {
                 <CardTitle>Messages</CardTitle>
               </CardHeader>
               <CardContent>
-                <MessageThread requestId={item.id} />
+                <MessageThread requestId={item.id} headingLevel={3} />
               </CardContent>
             </Card>
           )}

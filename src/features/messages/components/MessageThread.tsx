@@ -21,7 +21,14 @@ const unknownAuthor = (id: string): Participant => ({ id, name: "Former user", r
  * The conversation for one request (resident and coordinator). Embeddable on
  * the request detail page; renders nothing for roles that can't read threads.
  */
-export function MessageThread({ requestId }: { requestId: string }) {
+export function MessageThread({
+  requestId,
+  headingLevel = 2,
+}: {
+  requestId: string;
+  /** Heading level for the empty state (3 when embedded under a card title). */
+  headingLevel?: 2 | 3;
+}) {
   const { user } = useCurrentSession();
   const [draft, setDraft] = useState("");
   // Rollback: put a failed message back in the box unless the user already typed something new.
@@ -70,7 +77,8 @@ export function MessageThread({ requestId }: { requestId: string }) {
         <EmptyState
           icon={<MessagesSquare />}
           title="No messages yet"
-          description="No messages yet. Ask a question or add details."
+          description="Ask a question or add details."
+          headingLevel={headingLevel}
         />
       ) : (
         <ol aria-label="Conversation" className="flex flex-col gap-4">

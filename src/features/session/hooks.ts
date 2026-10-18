@@ -55,9 +55,7 @@ export function useSignIn() {
       queryClient.clear();
       queryClient.setQueryData(sessionKeys.current, session);
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(
-        safeNextPath(next, window.location.origin) ?? homePathFor(session.user.role),
-      );
+      router.replace(safeNextPath(next, window.location.origin) ?? homePathFor(session.user.role));
     },
   });
 }

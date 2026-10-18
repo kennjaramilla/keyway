@@ -9,9 +9,19 @@ export type EmptyStateProps = {
   /** Usually a primary Button, e.g. "New request". */
   action?: ReactNode;
   className?: string;
+  /** Match the outline: 2 under a page h1, 3 inside a card titled with an h2. */
+  headingLevel?: 2 | 3;
 };
 
-export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
+export function EmptyState({
+  title,
+  description,
+  icon,
+  action,
+  className,
+  headingLevel = 2,
+}: EmptyStateProps) {
+  const Heading = headingLevel === 3 ? "h3" : "h2";
   return (
     <div
       className={cn(
@@ -22,7 +32,7 @@ export function EmptyState({ title, description, icon, action, className }: Empt
       <div aria-hidden className="mb-1 text-fg-subtle [&_svg]:size-8">
         {icon ?? <Inbox />}
       </div>
-      <h2 className="text-base font-semibold text-fg">{title}</h2>
+      <Heading className="text-base font-semibold text-fg">{title}</Heading>
       {description && <p className="max-w-sm text-sm text-fg-muted">{description}</p>}
       {action && <div className="mt-3">{action}</div>}
     </div>
