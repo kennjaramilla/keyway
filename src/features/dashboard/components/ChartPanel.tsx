@@ -11,22 +11,27 @@ export type Bar = { label: string; value: number; display: string };
 export type TableData = { columns: string[]; rows: { key: string; cells: ReactNode[] }[] };
 
 /**
- * A titled horizontal bar chart with a text summary and a "Show table" / "Show chart" toggle
+ * A titled chart (horizontal bars, or any `chart` node) with a text summary and a "Show table" / "Show chart" toggle
  * (the label says what pressing does, so there's no aria-pressed).
  * Every bar carries its value as text, so nothing depends on colour or length alone.
  */
 export function ChartPanel({
   title,
   summary,
-  bars,
+  bars = [],
+  chart,
   table,
   tone = "primary",
+  className,
 }: {
   title: string;
   summary: string;
-  bars: Bar[];
+  bars?: Bar[];
+  /** A custom visual; it should carry its values as text, like the bars do. */
+  chart?: ReactNode;
   table: TableData;
   tone?: "primary" | "danger";
+  className?: string;
 }) {
   const [asTable, setAsTable] = useState(false);
   const titleId = useId();
@@ -34,7 +39,7 @@ export function ChartPanel({
   const max = Math.max(1, ...bars.map((bar) => bar.value));
 
   return (
-    <Card aria-labelledby={titleId} className="min-w-0">
+    <Card aria-labelledby={titleId} className={cn("min-w-0", className)}>
       <CardHeader className="flex-row items-start justify-between gap-3">
         <div className="grid gap-1">
           <CardTitle id={titleId}>{title}</CardTitle>
@@ -96,28 +101,30 @@ export function ChartPanel({
           </div>
         ) : (
           <figure aria-labelledby={titleId} aria-describedby={summaryId}>
-            <ul className="grid gap-3">
-              {bars.map((bar) => (
-                <li
-                  key={bar.label}
-                  className="grid grid-cols-[minmax(7rem,10rem)_1fr_auto] items-center gap-3 text-sm"
-                >
-                  <span className="truncate text-fg">{bar.label}</span>
-                  <span aria-hidden className="h-6 rounded-sm bg-surface-muted">
-                    <span
-                      className={cn(
-                        "block h-full rounded-sm",
-                        tone === "danger" ? "bg-danger" : "bg-primary",
-                      )}
-                      style={{ width: `${(bar.value / max) * 100}%` }}
-                    />
-                  </span>
-                  <span className="min-w-16 text-right font-medium text-fg tabular-nums">
-                    {bar.display}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            {chart ?? (
+              <ul className="grid gap-3">
+                {bars.map((bar) => (
+                  <li
+                    key={bar.label}
+                    className="grid grid-cols-[minmax(7rem,10rem)_1fr_auto] items-center gap-3 text-sm"
+                  >
+                    <span className="truncate text-fg">{bar.label}</span>
+                    <span aria-hidden className="h-6 rounded-sm bg-surface-muted">
+                      <span
+                        className={cn(
+                          "block h-full rounded-sm",
+                          tone === "danger" ? "bg-danger" : "bg-primary",
+                        )}
+                        style={{ width: `${(bar.value / max) * 100}%` }}
+                      />
+                    </span>
+                    <span className="min-w-16 text-right font-medium text-fg tabular-nums">
+                      {bar.display}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </figure>
         )}
       </CardContent>

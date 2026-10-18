@@ -1,39 +1,105 @@
 "use client";
 
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  CheckCircle2,
+  Inbox,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { STATUS_LABELS, STATUSES, URGENCY_LABELS } from "@/features/requests/schema";
+import { cn } from "@/lib/cn";
 import { useDashboard } from "../hooks/useDashboard";
-import { formatDuration } from "../metrics";
+import { formatChange, formatDuration, onTimeRate } from "../metrics";
 import type { Dashboard as DashboardData } from "../schema";
 import { ChartPanel } from "./ChartPanel";
+import { DonutChart } from "./DonutChart";
+import { BuildingHealthList, VendorStatusList } from "./PortfolioLists";
+import { TrendChart } from "./TrendChart";
 
 const OPEN_STATUSES = STATUSES.filter((status) => status !== "resolved");
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
-function Kpi({ label, value, hint }: { label: string; value: string; hint: string }) {
+type Trend = { text: string; direction: "up" | "down" | "flat"; good?: boolean };
+
+const KPI_TONES = {
+  primary: "bg-primary-soft text-primary",
+  success: "bg-success-soft text-success",
+  danger: "bg-danger-soft text-danger",
+} as const;
+
+function Kpi({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  tone = "primary",
+  trend,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: LucideIcon;
+  tone?: keyof typeof KPI_TONES;
+  trend?: Trend;
+}) {
+  const TrendIcon = trend?.direction === "down" ? ArrowDownRight : ArrowUpRight;
   return (
     <div className="rounded-lg border border-border bg-surface p-5 shadow-sm">
-      <dt className="text-sm font-medium text-fg-muted">{label}</dt>
-      <dd className="mt-1 text-3xl font-semibold text-fg tabular-nums">{value}</dd>
-      <dd className="mt-1 text-xs text-fg-muted">{hint}</dd>
+      <dt className="text-xs font-semibold tracking-wide text-fg-muted uppercase">{label}</dt>
+      <dd className="mt-2 flex items-center justify-between gap-3 text-3xl font-semibold text-fg tabular-nums">
+        {value}
+        <span
+          aria-hidden
+          className={cn("flex size-10 items-center justify-center rounded-lg", KPI_TONES[tone])}
+        >
+          <Icon className="size-5" />
+        </span>
+      </dd>
+      <dd className="mt-2 flex items-center gap-1 text-xs text-fg-muted">
+        {trend && trend.direction !== "flat" && (
+          <TrendIcon
+            aria-hidden
+            className={cn(
+              "size-3.5 shrink-0",
+              trend.good === true && "text-success",
+              trend.good === false && "text-danger",
+            )}
+          />
+        )}
+        {trend ? trend.text : hint}
+      </dd>
     </div>
   );
 }
+
+/** Direction of a week-on-week change; `upIsGood` colours the arrow (the text says the same). */
+function trendOf(current: number, previous: number, upIsGood?: boolean): Trend {
+  const direction = current > previous ? "up" : current < previous ? "down" : "flat";
+  const good =
+    upIsGood === undefined || direction === "flat" ? undefined : (direction === "up") === upIsGood;
+  return { text: formatChange(current, previous), direction, good };
+}
+
+const weekday = (date: string) =>
+  new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
 
 function DashboardSkeleton() {
   return (
     <div role="status" aria-busy="true" aria-label="Loading dashboard" className="grid gap-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
-          <Skeleton key={index} className="h-28" />
+          <Skeleton key={index} className="h-32" />
         ))}
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        {Array.from({ length: 4 }, (_, index) => (
-          <Skeleton key={index} className="h-64" />
-        ))}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Skeleton className="h-72 lg:col-span-2" />
+        <Skeleton className="h-72" />
       </div>
     </div>
   );
@@ -67,25 +133,96 @@ export function Dashboard() {
 
 function DashboardPanels({ data }: { data: DashboardData }) {
   const { totals, openByBuilding, resolveTimeByBuilding, overdueByUrgency, workload } = data;
+  const { weekly, daily, onTime } = data;
   const busiest = [...openByBuilding].sort((a, b) => b.open - a.open)[0];
   const heaviest = [...workload].sort((a, b) => b.open - a.open)[0];
+  const rate = onTimeRate(onTime);
+  const tracked = onTime.met + onTime.atRisk + onTime.breached;
+  const onTimeRows = [
+    { key: "met", label: "Met or on track", value: onTime.met, color: "var(--chart-2)" },
+    { key: "risk", label: "At risk (past halfway)", value: onTime.atRisk, color: "var(--chart-3)" },
+    { key: "breached", label: "Breached", value: onTime.breached, color: "var(--chart-4)" },
+  ];
 
   return (
     <div className="grid gap-6">
       <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi label="Open requests" value={String(totals.open)} hint="Across all buildings" />
         <Kpi
-          label="Avg time to resolve (30d)"
-          value={formatDuration(totals.avgResolveHours30d)}
-          hint="From submitted to resolved"
+          label="Open requests"
+          value={String(totals.open)}
+          hint="Across all buildings"
+          icon={Inbox}
+          trend={{
+            ...trendOf(weekly.opened, weekly.openedPrev),
+            text: `${weekly.opened} new this week (${formatChange(weekly.opened, weekly.openedPrev)})`,
+          }}
+        />
+        <Kpi
+          label="Resolved this week"
+          value={String(weekly.resolved)}
+          hint="In the last 7 days"
+          icon={CheckCircle2}
+          tone="success"
+          trend={trendOf(weekly.resolved, weekly.resolvedPrev, true)}
+        />
+        <Kpi
+          label="On-time rate"
+          value={rate === null ? "No data" : `${rate}%`}
+          hint={`${onTime.met + onTime.atRisk} of ${tracked} within their target`}
+          icon={ShieldCheck}
         />
         <Kpi
           label="Overdue"
           value={String(totals.overdue)}
           hint="Open past their urgency's target"
+          icon={AlertTriangle}
+          tone="danger"
         />
-        <Kpi label="Resolved (30d)" value={String(totals.resolved30d)} hint="In the last 30 days" />
       </dl>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <ChartPanel
+          className="lg:col-span-2"
+          title="Request volume, last 7 days"
+          summary={`${plural(weekly.opened, "request")} opened and ${weekly.resolved} resolved this week.`}
+          chart={
+            <TrendChart
+              points={daily.map((day) => ({
+                label: weekday(day.date),
+                opened: day.opened,
+                resolved: day.resolved,
+              }))}
+            />
+          }
+          table={{
+            columns: ["Day", "Opened", "Resolved"],
+            rows: daily.map((day) => ({
+              key: day.date,
+              cells: [weekday(day.date), day.opened, day.resolved],
+            })),
+          }}
+        />
+        <ChartPanel
+          title="On-time performance"
+          summary="Open and recently resolved work against its target."
+          chart={
+            <DonutChart
+              centerValue={rate === null ? "–" : `${rate}%`}
+              centerLabel="on time"
+              slices={onTimeRows}
+            />
+          }
+          table={{
+            columns: ["Status", "Requests"],
+            rows: onTimeRows.map((row) => ({ key: row.key, cells: [row.label, row.value] })),
+          }}
+        />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <BuildingHealthList className="lg:col-span-2" rows={data.buildingHealth} />
+        <VendorStatusList rows={data.vendors} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartPanel
