@@ -1,5 +1,13 @@
+import { z } from "zod";
+import { vendorSchema } from "@/features/vendors/schema";
 import { api } from "@/lib/api-client";
-import { requestListSchema, requestSchema, type Status } from "./schema";
+import {
+  requestDetailSchema,
+  requestListItemsSchema,
+  type RequestCreate,
+  type Status,
+  type VisitWindow,
+} from "./schema";
 
 export type RequestFilters = {
   buildingId: string;
@@ -18,8 +26,29 @@ export const requestKeys = {
   detail: (id: string) => [...requestKeys.all, "detail", id] as const,
 };
 
+export const vendorKeys = {
+  list: (buildingId: string) => ["vendors", { buildingId }] as const,
+};
+
 export const fetchRequests = ({ buildingId, status, sort }: RequestFilters, signal?: AbortSignal) =>
-  api.get("/requests", requestListSchema, { query: { buildingId, status, sort }, signal });
+  api.get("/requests", requestListItemsSchema, { query: { buildingId, status, sort }, signal });
 
 export const fetchRequest = (id: string, signal?: AbortSignal) =>
-  api.get(`/requests/${encodeURIComponent(id)}`, requestSchema, { signal });
+  api.get(`/requests/${encodeURIComponent(id)}`, requestDetailSchema, { signal });
+
+export const createRequest = (input: RequestCreate) =>
+  api.post("/requests", requestDetailSchema, input);
+
+export const fetchVendors = (buildingId: string, signal?: AbortSignal) =>
+  api.get("/vendors", z.array(vendorSchema), { query: { buildingId }, signal });
+
+/** Body for each workflow action (POST /requests/:id/<action>). */
+export type WorkflowInput =
+  | { action: "triage"; body: { category?: string; urgency?: string; note?: string } }
+  | { action: "assign"; body: { vendorId: string } }
+  | { action: "schedule"; body: VisitWindow }
+  | { action: "start"; body?: undefined }
+  | { action: "resolve"; body: { resolutionNote: string } };
+
+export const runWorkflowAction = (id: string, { action, body }: WorkflowInput) =>
+  api.post(`/requests/${encodeURIComponent(id)}/${action}`, requestDetailSchema, body ?? {});

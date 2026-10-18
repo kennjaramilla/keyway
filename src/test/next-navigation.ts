@@ -15,7 +15,7 @@ export const navigationState = { pathname: "/requests" };
 export const nextNavigationMock = {
   useRouter: () => mockRouter,
   usePathname: () => navigationState.pathname,
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(window.location.search),
   useParams: () => ({}),
   redirect: vi.fn(),
   notFound: vi.fn(),
