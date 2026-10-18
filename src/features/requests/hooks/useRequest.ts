@@ -80,10 +80,22 @@ export function useWorkflowAction(request: RequestDetail) {
   const queryClient = useQueryClient();
   const detailKey = requestKeys.detail(request.id);
 
-  const patchLists = (next: Partial<RequestListItem>) =>
+  // Copy only what a workflow step can change, so detail-only fields never leak into lists.
+  const patchLists = (next: RequestDetail) => {
+    const changes: Partial<RequestListItem> = {
+      status: next.status,
+      urgency: next.urgency,
+      category: next.category,
+      vendorId: next.vendorId,
+      vendorName: next.vendorName,
+      visitWindow: next.visitWindow,
+      resolvedAt: next.resolvedAt,
+      updatedAt: next.updatedAt,
+    };
     queryClient.setQueriesData<RequestListItem[]>({ queryKey: requestKeys.lists() }, (list) =>
-      list?.map((item) => (item.id === request.id ? { ...item, ...next } : item)),
+      list?.map((item) => (item.id === request.id ? { ...item, ...changes } : item)),
     );
+  };
 
   return useMutation({
     mutationFn: (input: WorkflowInput) => runWorkflowAction(request.id, input),

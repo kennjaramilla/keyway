@@ -6,6 +6,8 @@ import { sessionSchema } from "@/features/session/schema";
 import { api } from "@/lib/api-client";
 import { readSessionCookie } from "@/lib/auth/session-cookie";
 import { act, renderInWorkspace, screen, waitFor, within } from "@/test/render";
+import { fetchRequests, requestKeys } from "../api";
+import type { RequestListItem } from "../schema";
 import { RequestDetailView } from "./RequestDetailView";
 import { sortVendors } from "./WorkflowActions";
 
@@ -135,6 +137,25 @@ describe("RequestDetailView", () => {
     await waitFor(() => expect(timelineItems()).toHaveLength(6));
     expect(screen.getByText("Replaced the relief valve.")).toBeInTheDocument();
     expect(actions()).not.toBeInTheDocument();
+  });
+
+  it("patches only list fields into cached request lists", async () => {
+    const { user, queryClient } = await openDetail("req_030");
+    const listKey = requestKeys.list({ buildingId: "bld_harbor" });
+    queryClient.setQueryData(listKey, await fetchRequests({ buildingId: "bld_harbor" }));
+
+    await user.click(screen.getByRole("button", { name: "Triage" }));
+    const triage = screen.getByRole("dialog", { name: "Triage KW-1030" });
+    await user.click(within(triage).getByRole("button", { name: "Mark triaged" }));
+    const cached = () =>
+      queryClient.getQueryData<RequestListItem[]>(listKey)?.find((r) => r.id === "req_030");
+    const saved = () => getDb().requests.find((r) => r.id === "req_030");
+    await waitFor(() => expect(cached()?.updatedAt).toBe(saved()?.updatedAt));
+
+    const item = cached();
+    expect(item?.status).toBe("triaged");
+    expect(item).not.toHaveProperty("people");
+    expect(item).not.toHaveProperty("buildingName");
   });
 
   it("rolls back and explains when the API rejects a step", async () => {
