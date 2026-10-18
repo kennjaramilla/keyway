@@ -1,19 +1,16 @@
 "use client";
 
-import { Construction } from "lucide-react";
 import { PageHeader } from "@/components/shell/PageHeader";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Dashboard } from "@/features/dashboard/components/Dashboard";
 
-// Placeholder: replaced by the Dashboard feature.
-export default function Page() {
+export default function DashboardPage() {
   return (
     <>
-      <PageHeader title="Dashboard" />
-      <EmptyState
-        icon={<Construction />}
-        title="Coming soon"
-        description="This part of Keyway is still being built."
+      <PageHeader
+        title="Dashboard"
+        description="Open work, speed and overdue requests across every building."
       />
+      <Dashboard />
     </>
   );
 }
