@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/badge";
+import { MessageThreadLink } from "@/features/messages/components/MessageThreadLink";
 import { useCurrentSession, useSwitchBuilding } from "@/features/session/hooks";
 import { ApiError } from "@/lib/api-client";
 import { formatDateTime, formatPreferredWindow, formatVisitWindow } from "../format";
@@ -91,7 +92,12 @@ export function RequestDetailView({ id }: { id: string }) {
       <PageHeader
         title={item.title}
         description={`${item.number} · Unit ${item.unitLabel} · ${CATEGORY_LABELS[item.category]}`}
-        actions={<WorkflowActions request={item} />}
+        actions={
+          <>
+            <WorkflowActions request={item} />
+            <MessageThreadLink requestId={item.id} />
+          </>
+        }
       />
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <span className="sr-only">Status:</span>
