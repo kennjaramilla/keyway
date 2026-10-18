@@ -128,7 +128,9 @@ describe("MessageThread", () => {
     await conversation();
     await waitFor(() => {
       const thread = getDb().threads.find((t) => t.requestId === "req_017");
-      expect(thread?.lastReadAt.usr_coord_grace! > thread!.lastMessageAt).toBe(true);
+      expect(Date.parse(thread?.lastReadAt.usr_coord_grace ?? "")).toBeGreaterThan(
+        Date.parse(thread?.lastMessageAt ?? ""),
+      );
     });
   });
 
