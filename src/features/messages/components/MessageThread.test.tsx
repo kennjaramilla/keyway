@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse } from "msw";
 import { messageKeys } from "@/features/messages/api";
+import type { ThreadDetail } from "@/features/messages/schema";
 import { getDb, updateDb } from "@/mocks/db";
 import { armFailure } from "@/mocks/demo-failures";
 import { server } from "@/mocks/node";
@@ -71,7 +72,7 @@ describe("MessageThread", () => {
       as: "coordinator",
     });
     await conversation();
-    const stale = queryClient.getQueryData(messageKeys.thread("req_017"));
+    const stale = queryClient.getQueryData<ThreadDetail>(messageKeys.thread("req_017"));
     let release = () => {};
     const gate = new Promise<void>((resolve) => (release = resolve));
     server.use(
