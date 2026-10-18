@@ -48,6 +48,8 @@ describe("tenant isolation", () => {
       .and("not.contain.text", "KW-1017");
 
     cy.findByRole("link", { name: "Requests" }).click();
+    cy.findByRole("table").findAllByRole("row").should("have.length", 8); // header + 7 open
+    cy.findByRole("checkbox", { name: "Resolved" }).click();
     cy.findByRole("table").findAllByRole("row").should("have.length", 12); // header + 11 Maple Court
     cy.findByRole("table").should("not.contain.text", "Water heater leaking onto the floor");
 
