@@ -66,6 +66,36 @@ describe("MessageThread", () => {
     expect(screen.getByText("Plumber confirmed.")).toBeInTheDocument();
   });
 
+  it("keeps a sent message when an older poll lands after it", async () => {
+    const { user, queryClient } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+      as: "coordinator",
+    });
+    await conversation();
+    const stale = queryClient.getQueryData(messageKeys.thread("req_017"));
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    server.use(
+      http.get(
+        "*/api/threads/:requestId/messages",
+        async () => {
+          await gate;
+          return HttpResponse.json(stale);
+        },
+        { once: true },
+      ),
+    );
+    void queryClient.refetchQueries({ queryKey: messageKeys.thread("req_017") });
+
+    await user.type(await screen.findByLabelText("Message Diego Santillán"), "On my way.{Enter}");
+    await waitFor(() => expect(screen.queryByText("Sending…")).not.toBeInTheDocument());
+    await act(async () => {
+      release();
+      await delay(20);
+    });
+    expect(screen.getByText("On my way.")).toBeInTheDocument();
+    expect(within(await conversation()).getAllByRole("listitem")).toHaveLength(6);
+  });
+
   it("adds a new line with Shift+Enter instead of sending", async () => {
     const { user } = renderInWorkspace(<MessageThread requestId="req_017" />, {
       as: "coordinator",
