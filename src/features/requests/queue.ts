@@ -2,9 +2,9 @@ import { CATEGORIES, STATUSES, URGENCIES, type RequestListItem, type Status } fr
 
 // Queue filters and sorting, kept in the URL (?status=new,triaged&sort=urgency&dir=desc).
 
-export const SORT_KEYS = ["urgency", "age", "updated"] as const;
+const SORT_KEYS = ["urgency", "age", "updated"] as const;
 export type SortKey = (typeof SORT_KEYS)[number];
-export type SortDir = "asc" | "desc";
+type SortDir = "asc" | "desc";
 
 export type QueueState = {
   statuses: Status[];
@@ -15,7 +15,7 @@ export type QueueState = {
   dir: SortDir;
 };
 
-export const OPEN_STATUSES: Status[] = STATUSES.filter((status) => status !== "resolved");
+const OPEN_STATUSES: Status[] = STATUSES.filter((status) => status !== "resolved");
 
 /** Staff default to open work; residents see everything they've reported. */
 export const defaultQueue = (role: string): QueueState => ({

@@ -11,7 +11,7 @@ export type ToastInput = {
   durationMs?: number;
 };
 
-export type ToastItem = ToastInput & { id: number };
+type ToastItem = ToastInput & { id: number };
 
 type ToastState = {
   toasts: ToastItem[];

@@ -21,3 +21,12 @@ describe("mock db", () => {
     expect(nextId("req")).not.toBe(nextId("req"));
   });
 });
+
+describe("mock db loading", () => {
+  it("reseeds when the stored db is corrupt", async () => {
+    localStorage.setItem("keyway:db:v1", "{not json");
+    vi.resetModules();
+    const fresh = await import("./db");
+    expect(fresh.getDb().requests).toHaveLength(30);
+  });
+});

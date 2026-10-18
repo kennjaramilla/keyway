@@ -2,7 +2,7 @@
 
 import { ArrowLeft, SearchX } from "lucide-react";
 import Link from "next/link";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,18 +41,19 @@ function Detail({ term, children }: { term: string; children: ReactNode }) {
 export function RequestDetailView({ id }: { id: string }) {
   const { user } = useCurrentSession();
   const request = useRequest(id);
-  const switchBuilding = useSwitchBuilding();
-  const otherBuilding =
-    request.data && request.data.buildingId !== user.activeBuildingId
-      ? request.data.buildingId
-      : null;
+  const { mutate: switchTo } = useSwitchBuilding();
+  const requestBuilding = request.data?.buildingId;
+  const checkedDeepLink = useRef<string | null>(null);
 
-  // A deep link into another covered building switches to it, so the header never lies.
+  // A deep link into another covered building switches to it once, so the header never lies.
+  // Later switches are the user's choice (the switcher then leaves this page).
   useEffect(() => {
-    if (otherBuilding && user.role !== "resident" && !switchBuilding.isPending) {
-      switchBuilding.mutate(otherBuilding);
+    if (!requestBuilding || checkedDeepLink.current === id) return;
+    checkedDeepLink.current = id;
+    if (user.role !== "resident" && requestBuilding !== user.activeBuildingId) {
+      switchTo(requestBuilding);
     }
-  }, [otherBuilding, user.role, switchBuilding]);
+  }, [id, requestBuilding, user.role, user.activeBuildingId, switchTo]);
 
   if (request.isPending) {
     return (
@@ -154,7 +155,7 @@ export function RequestDetailView({ id }: { id: string }) {
                 <CardTitle>Messages</CardTitle>
               </CardHeader>
               <CardContent>
-                <MessageThread requestId={item.id} />
+                <MessageThread requestId={item.id} headingLevel={3} />
               </CardContent>
             </Card>
           )}

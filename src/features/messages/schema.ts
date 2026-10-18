@@ -30,7 +30,6 @@ export const messageCreateSchema = z.object({
     .min(1, "Write a message first.")
     .max(MESSAGE_MAX_LENGTH, "Keep messages under 2,000 characters."),
 });
-export type MessageCreate = z.infer<typeof messageCreateSchema>;
 
 const participantSchema = z.object({
   id: z.string(),
@@ -42,7 +41,7 @@ export type Participant = z.infer<typeof participantSchema>;
 const requestRefSchema = z.object({ id: z.string(), number: z.string(), title: z.string() });
 
 /** GET /api/threads: one row per request with a conversation, newest activity first. */
-export const threadSummarySchema = z.object({
+const threadSummarySchema = z.object({
   id: z.string(),
   requestId: z.string(),
   request: requestRefSchema,

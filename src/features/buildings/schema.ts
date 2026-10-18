@@ -11,7 +11,6 @@ export const buildingSchema = z.object({
   coordinatorIds: z.array(z.string()),
   description: z.string(),
 });
-export type Building = z.infer<typeof buildingSchema>;
 
 export const unitSchema = z.object({
   id: z.string(),
@@ -20,4 +19,3 @@ export const unitSchema = z.object({
   floor: z.number().int(),
   bedrooms: z.number().int(),
 });
-export type Unit = z.infer<typeof unitSchema>;

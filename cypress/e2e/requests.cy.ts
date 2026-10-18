@@ -25,6 +25,28 @@ describe("requests list", () => {
     cy.checkPageA11y();
   });
 
+  it("switches to the building of a deep-linked request once", () => {
+    cy.signInAs("coordinator");
+    cy.visitFresh("/requests/req_003");
+    cy.title().should("eq", "Mouse droppings under the kitchen sink · Maple Court · Keyway");
+  });
+
+  it("leaves a request page for the new building's queue when the coordinator switches", () => {
+    cy.signInAs("coordinator");
+    cy.visitFresh("/requests/req_030");
+    cy.findByRole("heading", { level: 1 }).should("be.visible");
+    cy.title().should("contain", "· Harbor View Lofts · Keyway");
+
+    cy.findByRole("button", { name: /Switch building/ }).click();
+    cy.findByRole("menuitemradio", { name: /Maple Court/ }).click();
+
+    cy.location("pathname").should("eq", "/requests");
+    cy.title().should("eq", "Requests · Maple Court · Keyway");
+    cy.findByRole("button", { name: /Building: Maple Court/ }).should("exist");
+    cy.findByRole("status").should("contain.text", "Switched to Maple Court");
+    cy.checkPageA11y();
+  });
+
   it("returns 404 from the API for another unit's request", () => {
     cy.signInAs("resident", "usr_res_diego");
     cy.visitFresh("/requests");

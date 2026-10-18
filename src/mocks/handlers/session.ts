@@ -45,7 +45,7 @@ export const sessionHandlers = [
   }),
 
   http.post(`${API}/session`, async ({ request }) => {
-    const parsed = signInSchema.safeParse(await request.json());
+    const parsed = signInSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return validationError(parsed.error);
     const user = getDb().users.find((candidate) => candidate.id === parsed.data.userId);
     if (!user) return notFound("Person");
@@ -63,7 +63,7 @@ export const sessionHandlers = [
   http.put(`${API}/session/building`, async ({ request, cookies }) => {
     const user = sessionUser(cookies);
     if (!user) return unauthorized();
-    const parsed = switchBuildingSchema.safeParse(await request.json());
+    const parsed = switchBuildingSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return validationError(parsed.error);
     const { buildingId } = parsed.data;
     const denied = deny(user, "building:switch", { buildingId });

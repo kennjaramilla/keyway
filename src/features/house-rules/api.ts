@@ -2,7 +2,7 @@ import { z } from "zod";
 import { api } from "@/lib/api-client";
 import { assistantAnswerSchema } from "./schema";
 
-export const assistantModeSchema = z.object({ mode: assistantAnswerSchema.shape.mode });
+const assistantModeSchema = z.object({ mode: assistantAnswerSchema.shape.mode });
 
 export const assistantKeys = { mode: ["assistant", "mode"] as const };
 

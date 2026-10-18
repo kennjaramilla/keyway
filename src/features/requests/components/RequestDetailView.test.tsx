@@ -1,7 +1,13 @@
 import { http, HttpResponse } from "msw";
 import { getDb } from "@/mocks/db";
 import { server } from "@/mocks/node";
-import { renderInWorkspace, screen, waitFor, within } from "@/test/render";
+import { sessionKeys } from "@/features/session/api";
+import { sessionSchema } from "@/features/session/schema";
+import { api } from "@/lib/api-client";
+import { readSessionCookie } from "@/lib/auth/session-cookie";
+import { act, renderInWorkspace, screen, waitFor, within } from "@/test/render";
+import { fetchRequests, requestKeys } from "../api";
+import type { RequestListItem } from "../schema";
 import { RequestDetailView } from "./RequestDetailView";
 import { sortVendors } from "./WorkflowActions";
 
@@ -29,6 +35,13 @@ describe("RequestDetailView", () => {
     expect(timelineItems()[0]).toHaveTextContent("Amara Okafor");
     expect(actions()).not.toBeInTheDocument();
     expect(await screen.findByRole("region", { name: "Messages" })).toBeInTheDocument();
+  });
+
+  it("nests the empty messages heading under the Messages card", async () => {
+    await openDetail("req_030", "resident");
+    expect(
+      await screen.findByRole("heading", { level: 3, name: "No messages yet" }),
+    ).toBeInTheDocument();
   });
 
   it("leaves messages out for the manager", async () => {
@@ -133,6 +146,25 @@ describe("RequestDetailView", () => {
     expect(actions()).not.toBeInTheDocument();
   });
 
+  it("patches only list fields into cached request lists", async () => {
+    const { user, queryClient } = await openDetail("req_030");
+    const listKey = requestKeys.list({ buildingId: "bld_harbor" });
+    queryClient.setQueryData(listKey, await fetchRequests({ buildingId: "bld_harbor" }));
+
+    await user.click(screen.getByRole("button", { name: "Triage" }));
+    const triage = screen.getByRole("dialog", { name: "Triage KW-1030" });
+    await user.click(within(triage).getByRole("button", { name: "Mark triaged" }));
+    const cached = () =>
+      queryClient.getQueryData<RequestListItem[]>(listKey)?.find((r) => r.id === "req_030");
+    const saved = () => getDb().requests.find((r) => r.id === "req_030");
+    await waitFor(() => expect(cached()?.updatedAt).toBe(saved()?.updatedAt));
+
+    const item = cached();
+    expect(item?.status).toBe("triaged");
+    expect(item).not.toHaveProperty("people");
+    expect(item).not.toHaveProperty("buildingName");
+  });
+
   it("rolls back and explains when the API rejects a step", async () => {
     server.use(
       http.post("*/api/requests/:id/start", () =>
@@ -145,7 +177,7 @@ describe("RequestDetailView", () => {
     const { user } = await openDetail("req_023");
     await user.click(screen.getByRole("button", { name: "Mark in progress" }));
     expect(await screen.findByText("Couldn't update KW-1023")).toBeInTheDocument();
-    expect(screen.getByText(/we've refreshed it/i)).toBeInTheDocument();
+    expect(screen.getByText(/we've refreshed it/i, { selector: "div" })).toBeInTheDocument();
     expect(await screen.findByRole("button", { name: "Mark in progress" })).toBeInTheDocument();
     expect(getDb().requests.find((r) => r.id === "req_023")?.status).toBe("scheduled");
   });
@@ -153,6 +185,15 @@ describe("RequestDetailView", () => {
   it("switches a coordinator to the request's building on a deep link", async () => {
     await openDetail("req_029", "coordinator", "bld_harbor");
     expect(await screen.findByText("Maple Court", { selector: "p" })).toBeInTheDocument();
+  });
+
+  it("does not switch back when the coordinator later picks another building", async () => {
+    const { queryClient } = await openDetail("req_030", "coordinator", "bld_harbor");
+    const maple = await api.put("/session/building", sessionSchema, { buildingId: "bld_maple" });
+    act(() => queryClient.setQueryData(sessionKeys.current, maple));
+    expect(await screen.findByText("Maple Court", { selector: "p" })).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(readSessionCookie()?.activeBuildingId).toBe("bld_maple");
   });
 });
 

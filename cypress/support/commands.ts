@@ -18,7 +18,10 @@ declare global {
       signInAs(role: Role, userId?: string): Chainable<void>;
       /** Visit a page with fresh seed data (clears the persisted mock db). */
       visitFresh(path: string, options?: Partial<VisitOptions>): Chainable<AUTWindow>;
-      /** Inject axe and fail on serious/critical WCAG A/AA violations. */
+      /**
+       * Inject axe and fail on serious/critical WCAG A/AA violations, in the light
+       * theme and then the dark theme (moderate/minor issues are logged by the a11y addon in Storybook).
+       */
       checkPageA11y(context?: string): Chainable<void>;
     }
   }
@@ -57,16 +60,34 @@ function logViolations(violations: Result[]) {
   );
 }
 
+const AXE_OPTIONS = {
+  runOnly: { type: "tag" as const, values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
+  // Serious and critical only: these block users; lower impacts are reviewed in Storybook.
+  includedImpacts: ["serious", "critical"],
+};
+
+function setTheme(theme: "light" | "dark") {
+  cy.document().then((doc) => {
+    doc.documentElement.dataset.theme = theme;
+  });
+}
+
 Cypress.Commands.add("checkPageA11y", (context?: string) => {
   cy.injectAxe();
-  cy.checkA11y(
-    context,
-    {
-      runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] },
-      includedImpacts: ["serious", "critical"],
-    },
-    logViolations,
-  );
+  // No colour transitions, so contrast is measured on final colours after the theme flips.
+  cy.document().then((doc) => {
+    const style = doc.createElement("style");
+    style.textContent = "*,*::before,*::after{transition:none!important}";
+    doc.head.appendChild(style);
+  });
+  cy.document().then((doc) => {
+    const original = doc.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    setTheme("light");
+    cy.checkA11y(context, AXE_OPTIONS, logViolations);
+    setTheme("dark");
+    cy.checkA11y(context, AXE_OPTIONS, logViolations);
+    setTheme(original);
+  });
 });
 
 export {};

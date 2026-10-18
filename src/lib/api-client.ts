@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** RFC 9457-style problem details returned by the (mock) API on errors. */
-export const problemDetailsSchema = z.object({
+const problemDetailsSchema = z.object({
   type: z.string().optional(),
   title: z.string(),
   status: z.number(),
@@ -33,7 +33,7 @@ export class ApiError extends Error {
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
 
 type RequestOptions = {
-  method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined>;
   signal?: AbortSignal;
@@ -59,7 +59,7 @@ async function toApiError(response: Response): Promise<ApiError> {
  * Typed fetch: every response is parsed with the given Zod schema, so a
  * contract drift fails loudly here instead of deep inside a component.
  */
-export async function apiRequest<S extends z.ZodType>(
+async function apiRequest<S extends z.ZodType>(
   path: string,
   schema: S,
   { method = "GET", body, query, signal }: RequestOptions = {},
@@ -104,8 +104,6 @@ export const api = {
   ) => apiRequest(path, schema, { ...options, method: "GET" }),
   post: <S extends z.ZodType>(path: string, schema: S, body?: unknown) =>
     apiRequest(path, schema, { method: "POST", body }),
-  patch: <S extends z.ZodType>(path: string, schema: S, body?: unknown) =>
-    apiRequest(path, schema, { method: "PATCH", body }),
   put: <S extends z.ZodType>(path: string, schema: S, body?: unknown) =>
     apiRequest(path, schema, { method: "PUT", body }),
   delete: <S extends z.ZodType>(path: string, schema: S) =>

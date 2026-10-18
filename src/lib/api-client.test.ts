@@ -29,12 +29,12 @@ describe("api client", () => {
     });
   });
 
-  it("supports patch and delete", async () => {
+  it("supports put and delete", async () => {
     server.use(
-      http.patch("*/api/items/1", () => HttpResponse.json({ id: "1", name: "Renamed" })),
+      http.put("*/api/items/1", () => HttpResponse.json({ id: "1", name: "Renamed" })),
       http.delete("*/api/items/1", () => new HttpResponse(null, { status: 204 })),
     );
-    await expect(api.patch("/items/1", itemSchema, { name: "Renamed" })).resolves.toMatchObject({
+    await expect(api.put("/items/1", itemSchema, { name: "Renamed" })).resolves.toMatchObject({
       name: "Renamed",
     });
     await expect(api.delete("/items/1", z.null())).resolves.toBeNull();

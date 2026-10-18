@@ -42,13 +42,16 @@ describe("SignInScreen", () => {
     window.history.replaceState(null, "", "/");
   });
 
-  it("ignores an off-site ?next", async () => {
-    window.history.replaceState(null, "", "/sign-in?next=//evil.example");
-    const { user } = renderWithProviders(<SignInScreen />);
-    await user.click(await screen.findByRole("button", { name: /Amara Okafor/ }));
-    await vi.waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/requests"));
-    window.history.replaceState(null, "", "/");
-  });
+  it.each(["//evil.example", "/%5Cevil.example/x"])(
+    "ignores an off-site ?next=%s",
+    async (next) => {
+      window.history.replaceState(null, "", `/sign-in?next=${next}`);
+      const { user } = renderWithProviders(<SignInScreen />);
+      await user.click(await screen.findByRole("button", { name: /Amara Okafor/ }));
+      await vi.waitFor(() => expect(mockRouter.replace).toHaveBeenCalledWith("/requests"));
+      window.history.replaceState(null, "", "/");
+    },
+  );
 
   it("shows an error with retry when people fail to load", async () => {
     server.use(

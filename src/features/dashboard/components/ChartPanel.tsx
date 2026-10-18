@@ -11,7 +11,8 @@ export type Bar = { label: string; value: number; display: string };
 export type TableData = { columns: string[]; rows: { key: string; cells: ReactNode[] }[] };
 
 /**
- * A titled horizontal bar chart with a text summary and a "Show table" toggle.
+ * A titled horizontal bar chart with a text summary and a "Show table" / "Show chart" toggle
+ * (the label says what pressing does, so there's no aria-pressed).
  * Every bar carries its value as text, so nothing depends on colour or length alone.
  */
 export function ChartPanel({
@@ -33,18 +34,13 @@ export function ChartPanel({
   const max = Math.max(1, ...bars.map((bar) => bar.value));
 
   return (
-    <Card aria-labelledby={titleId}>
+    <Card aria-labelledby={titleId} className="min-w-0">
       <CardHeader className="flex-row items-start justify-between gap-3">
         <div className="grid gap-1">
           <CardTitle id={titleId}>{title}</CardTitle>
           <CardDescription id={summaryId}>{summary}</CardDescription>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          aria-pressed={asTable}
-          onClick={() => setAsTable(!asTable)}
-        >
+        <Button variant="secondary" size="sm" onClick={() => setAsTable(!asTable)}>
           {asTable ? <BarChart3 aria-hidden /> : <Table2 aria-hidden />}
           {asTable ? "Show chart" : "Show table"}
         </Button>
@@ -63,7 +59,13 @@ export function ChartPanel({
               <TableHeader>
                 <TableRow>
                   {table.columns.map((column, index) => (
-                    <TableHead key={column} className={cn(index > 0 && "text-right")}>
+                    <TableHead
+                      key={column}
+                      className={cn(
+                        "tracking-normal normal-case",
+                        index > 0 ? "px-2 text-right last:pr-3" : "px-3",
+                      )}
+                    >
                       {column}
                     </TableHead>
                   ))}
@@ -77,12 +79,12 @@ export function ChartPanel({
                         <TableHead
                           key={index}
                           scope="row"
-                          className="text-sm font-medium tracking-normal text-fg normal-case"
+                          className="px-3 text-sm font-medium tracking-normal whitespace-nowrap text-fg normal-case"
                         >
                           {cell}
                         </TableHead>
                       ) : (
-                        <TableCell key={index} className="text-right tabular-nums">
+                        <TableCell key={index} className="px-2 text-right tabular-nums last:pr-3">
                           {cell}
                         </TableCell>
                       ),

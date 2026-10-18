@@ -8,7 +8,7 @@ import type { AssistantAnswer, RuleDocument, RulePassage } from "./schema";
 
 export const FALLBACK_ANSWER = "I don't know. Please message your coordinator.";
 
-export const RETRIEVAL = {
+const RETRIEVAL = {
   k1: 1.2,
   b: 0.75,
   minScore: 1.5,
@@ -19,7 +19,7 @@ export const RETRIEVAL = {
   minCoverage: 0.5,
 } as const;
 
-export const STOPWORDS: ReadonlySet<string> = new Set(
+const STOPWORDS: ReadonlySet<string> = new Set(
   `a about after all also am an and any are as at be been before being both but by can could
   d did do does doing for from had has have having he her here hers him his how i if in into is
   it its just ll m me might more most must my no nor not of off on once only or other our ours
@@ -103,7 +103,7 @@ export function bestSentence(passage: RulePassage, question: string) {
   return best.sentence.trim();
 }
 
-export type Citation = AssistantAnswer["citations"][number];
+type Citation = AssistantAnswer["citations"][number];
 
 export function toCitation(n: number, passage: RulePassage, documents: readonly RuleDocument[]) {
   return {

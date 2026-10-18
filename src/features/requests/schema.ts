@@ -35,7 +35,7 @@ export const URGENCY_LABELS: Record<Urgency, string> = {
 };
 
 /** Hours from creation before an open request counts as overdue. */
-export const SLA_HOURS: Record<Urgency, number> = {
+const SLA_HOURS: Record<Urgency, number> = {
   emergency: 24,
   high: 72,
   normal: 168,
@@ -63,7 +63,7 @@ export const LOCATIONS = [
   "balcony",
   "other",
 ] as const;
-export const locationSchema = z.enum(LOCATIONS);
+const locationSchema = z.enum(LOCATIONS);
 export type Location = z.infer<typeof locationSchema>;
 export const LOCATION_LABELS: Record<Location, string> = {
   kitchen: "Kitchen",
@@ -77,7 +77,7 @@ export const LOCATION_LABELS: Record<Location, string> = {
 };
 
 export const TIME_SLOTS = ["morning", "afternoon", "evening"] as const;
-export const timeSlotSchema = z.enum(TIME_SLOTS);
+const timeSlotSchema = z.enum(TIME_SLOTS);
 export type TimeSlot = z.infer<typeof timeSlotSchema>;
 export const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
   morning: "Morning (8–12)",
@@ -85,7 +85,7 @@ export const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
   evening: "Evening (5–8)",
 };
 
-export const TIMELINE_EVENT_TYPES = [
+const TIMELINE_EVENT_TYPES = [
   "created",
   "triaged",
   "vendor_assigned",
@@ -97,17 +97,17 @@ export const TIMELINE_EVENT_TYPES = [
   "cancelled",
   "reopened",
 ] as const;
-export const timelineEventTypeSchema = z.enum(TIMELINE_EVENT_TYPES);
+const timelineEventTypeSchema = z.enum(TIMELINE_EVENT_TYPES);
 
 // Entities
 
-export const visitWindowSchema = z.object({ start: z.iso.datetime(), end: z.iso.datetime() });
+const visitWindowSchema = z.object({ start: z.iso.datetime(), end: z.iso.datetime() });
 export type VisitWindow = z.infer<typeof visitWindowSchema>;
 
-export const preferredWindowSchema = z.object({ date: z.iso.date(), slot: timeSlotSchema });
+const preferredWindowSchema = z.object({ date: z.iso.date(), slot: timeSlotSchema });
 export type PreferredWindow = z.infer<typeof preferredWindowSchema>;
 
-export const timelineEventSchema = z.object({
+const timelineEventSchema = z.object({
   id: z.string(),
   type: timelineEventTypeSchema,
   at: z.iso.datetime(),
@@ -232,7 +232,7 @@ export function makeRequestCreateSchema(today: string) {
       message: "Choose at least one time window.",
       // Run even when other fields are invalid, so every error shows on the first submit.
       when: ({ value }) =>
-        Array.isArray((value as { preferredWindows?: unknown }).preferredWindows),
+        Array.isArray((value as { preferredWindows?: unknown } | null)?.preferredWindows),
     })
     .refine(
       (value) =>
@@ -330,7 +330,7 @@ export function makeScheduleFormSchema(ctx: ScheduleContext) {
 
 // Enriched API responses: names the UI needs without extra lookups.
 
-export const requestListItemSchema = requestSchema.extend({
+const requestListItemSchema = requestSchema.extend({
   unitLabel: z.string(),
   vendorName: z.string().nullable(),
 });

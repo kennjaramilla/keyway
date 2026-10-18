@@ -10,7 +10,7 @@ const MAX_BYTES = 10 * 1024 * 1024;
 const PREVIEW_PX = 112;
 
 /** Validate a chosen photo; returns an error message or null. */
-export function photoError(file: File) {
+function photoError(file: File) {
   if (!ACCEPTED.includes(file.type)) return "Choose a JPG, PNG or WebP image.";
   if (file.size > MAX_BYTES) return "Choose an image under 10 MB.";
   return null;

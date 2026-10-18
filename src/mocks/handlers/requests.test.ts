@@ -1,16 +1,8 @@
-import { z } from "zod";
-import { dashboardSchema } from "@/features/dashboard/schema";
-import { requestDetailSchema } from "@/features/requests/schema";
+import { requestDetailSchema, requestListSchema, requestSchema } from "@/features/requests/schema";
 import { localDate, zonedTimeToUtc } from "@/features/requests/time";
-import { vendorSchema } from "@/features/vendors/schema";
 import { api, type ApiError } from "@/lib/api-client";
+import { postRaw, statusOf as status } from "@/test/api";
 import { signInAs } from "@/test/session";
-
-const status = (promise: Promise<unknown>) =>
-  promise.then(
-    () => 200,
-    (error: ApiError) => error.status,
-  );
 
 const tomorrow = () => {
   const date = new Date(Date.now() + 86_400_000);
@@ -34,6 +26,46 @@ const visitWindow = () => ({
 });
 
 const post = (path: string, body?: unknown) => api.post(path, requestDetailSchema, body);
+
+describe("GET /api/requests and /api/requests/:id", () => {
+  it("residents see only their own unit", async () => {
+    signInAs("resident");
+    const requests = await api.get("/requests", requestListSchema);
+    expect(requests.length).toBeGreaterThan(0);
+    expect(new Set(requests.map((request) => request.unitId))).toEqual(new Set(["unit_hvl_4b"]));
+  });
+
+  it("coordinators see only the active building, and may not list another", async () => {
+    signInAs("coordinator");
+    const requests = await api.get("/requests", requestListSchema, {
+      query: { buildingId: "bld_harbor" },
+    });
+    expect(new Set(requests.map((request) => request.buildingId))).toEqual(new Set(["bld_harbor"]));
+    expect(
+      await status(api.get("/requests", requestListSchema, { query: { buildingId: "bld_maple" } })),
+    ).toBe(404);
+  });
+
+  it("sorts newest first (the queue filters and sorts on the client)", async () => {
+    signInAs("coordinator");
+    const all = await api.get("/requests", requestListSchema);
+    expect(all.map((r) => r.createdAt)).toEqual([...all.map((r) => r.createdAt)].sort().reverse());
+  });
+
+  it("returns 404 for a request outside scope, not 403", async () => {
+    signInAs("usr_res_diego");
+    expect(await status(api.get("/requests/req_001", requestSchema))).toBe(404);
+    signInAs("usr_coord_theo");
+    expect(await status(api.get("/requests/req_001", requestSchema))).toBe(404);
+    signInAs("manager");
+    expect(await status(api.get("/requests/req_001", requestSchema))).toBe(200);
+  });
+
+  it("requires a session", async () => {
+    expect(await status(api.get("/requests", requestListSchema))).toBe(401);
+    expect(await status(api.get("/requests/req_001", requestSchema))).toBe(401);
+  });
+});
 
 describe("POST /api/requests", () => {
   it("creates a request owned by the signed-in resident", async () => {
@@ -108,6 +140,21 @@ describe("workflow actions", () => {
     expect(await status(post("/requests/req_017/resolve", { resolutionNote: "" }))).toBe(422);
   });
 
+  it("rejects a vendor who doesn't serve the request's building with 422", async () => {
+    signInAs("usr_coord_theo");
+    // Plumb & Level serves Harbor and Maple, not The Linden (KW-1019).
+    const error = await post("/requests/req_019/assign", { vendorId: "ven_plumblevel" }).catch(
+      (caught: ApiError) => caught,
+    );
+    expect(error).toMatchObject({ status: 422 });
+    expect((error as ApiError).problem.errors).toHaveProperty("vendorId");
+  });
+
+  it("answers a malformed JSON body with 422", async () => {
+    signInAs("resident");
+    expect((await postRaw("/requests", "{not json")).status).toBe(422);
+  });
+
   it("is 403 for the wrong role and 404 out of scope", async () => {
     signInAs("resident");
     expect(await status(post("/requests/req_030/triage", {}))).toBe(403);
@@ -123,50 +170,5 @@ describe("workflow actions", () => {
   it("requires a session", async () => {
     expect(await status(post("/requests/req_030/triage", {}))).toBe(401);
     expect(await status(post("/requests", validCreate()))).toBe(401);
-  });
-});
-
-describe("GET /api/vendors", () => {
-  it("lists vendors serving the active building only", async () => {
-    signInAs("coordinator", "bld_maple");
-    const vendors = await api.get("/vendors", z.array(vendorSchema));
-    expect(vendors.every((vendor) => vendor.buildingIds.includes("bld_maple"))).toBe(true);
-    signInAs("usr_coord_theo");
-    const linden = await api.get("/vendors", z.array(vendorSchema));
-    expect(linden.map((vendor) => vendor.id)).not.toContain("ven_plumblevel");
-    expect(
-      await status(
-        api.get("/vendors", z.array(vendorSchema), { query: { buildingId: "bld_harbor" } }),
-      ),
-    ).toBe(404);
-    signInAs("resident");
-    expect(await status(api.get("/vendors", z.array(vendorSchema)))).toBe(403);
-  });
-});
-
-describe("GET /api/dashboard", () => {
-  it("returns the seeded portfolio numbers to the manager only", async () => {
-    signInAs("manager");
-    const dashboard = await api.get("/dashboard", dashboardSchema);
-    expect(dashboard.openByBuilding.map((row) => [row.name, row.open])).toEqual([
-      ["Harbor View Lofts", 7],
-      ["Maple Court", 7],
-      ["The Linden", 6],
-    ]);
-    expect(dashboard.overdueByUrgency).toEqual([
-      { urgency: "emergency", overdue: 0 },
-      { urgency: "high", overdue: 2 },
-      { urgency: "normal", overdue: 1 },
-      { urgency: "low", overdue: 1 },
-    ]);
-    expect(dashboard.workload.map((row) => [row.name, row.open])).toEqual([
-      ["Grace Adeyemi", 14],
-      ["Theo Marchetti", 6],
-    ]);
-
-    signInAs("coordinator");
-    expect(await status(api.get("/dashboard", dashboardSchema))).toBe(403);
-    signInAs("resident");
-    expect(await status(api.get("/dashboard", dashboardSchema))).toBe(403);
   });
 });

@@ -10,7 +10,7 @@ import type { ThreadDetail } from "../schema";
 import { unreadCount } from "../unread";
 
 /** How often an open thread checks for new messages while the tab is visible. */
-export const POLL_INTERVAL_MS = 5_000;
+const POLL_INTERVAL_MS = 5_000;
 
 let clientIds = 0;
 
@@ -83,6 +83,8 @@ export function useConversation(
     async (item: Pick<OutboxItem, "clientId" | "body">) => {
       try {
         const message = await sendMessage(requestId, item.body);
+        // An in-flight poll started before the send would overwrite it with older data.
+        await queryClient.cancelQueries({ queryKey: messageKeys.thread(requestId) });
         queryClient.setQueryData<ThreadDetail>(messageKeys.thread(requestId), (old) =>
           old ? { ...old, messages: appendMessage(old.messages, message) } : old,
         );

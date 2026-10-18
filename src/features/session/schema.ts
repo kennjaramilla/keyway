@@ -2,7 +2,7 @@ import { z } from "zod";
 import { buildingSchema, unitSchema } from "@/features/buildings/schema";
 import { ROLES } from "@/lib/auth/demo-users";
 
-export const roleSchema = z.enum(ROLES);
+const roleSchema = z.enum(ROLES);
 
 export const userSchema = z.object({
   id: z.string(),
@@ -12,10 +12,9 @@ export const userSchema = z.object({
   unitId: z.string().nullable(),
   buildingIds: z.array(z.string()),
 });
-export type User = z.infer<typeof userSchema>;
 
 /** The signed-in user as `can()` sees it: the user plus the active building. */
-export const sessionUserSchema = userSchema.extend({ activeBuildingId: z.string() });
+const sessionUserSchema = userSchema.extend({ activeBuildingId: z.string() });
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 
 /** GET /api/session: who is signed in and the buildings they may see. */
@@ -27,7 +26,7 @@ export const sessionSchema = z.object({
 export type SessionPayload = z.infer<typeof sessionSchema>;
 
 /** GET /api/demo/people: the seeded people shown on the demo sign-in page. */
-export const demoPersonSchema = z.object({
+const demoPersonSchema = z.object({
   id: z.string(),
   name: z.string(),
   role: roleSchema,

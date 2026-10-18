@@ -58,14 +58,17 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
           Skip to main content
         </a>
         <header className="sticky top-0 z-30 border-b border-border bg-surface">
-          <div className="flex h-14 items-center gap-3 px-4">
-            <Link href="/" className="flex items-center gap-2 rounded-sm font-semibold text-fg">
+          <div className="flex h-14 min-w-0 items-center gap-3 px-4">
+            <Link
+              href="/"
+              className="flex shrink-0 items-center gap-2 rounded-sm font-semibold text-fg"
+            >
               <Building2 aria-hidden className="size-5 text-primary" />
               Keyway
             </Link>
             <span aria-hidden className="h-6 w-px bg-border" />
             <BuildingSwitcher />
-            <div className="ml-auto">
+            <div className="ml-auto shrink-0">
               <UserMenu />
             </div>
           </div>

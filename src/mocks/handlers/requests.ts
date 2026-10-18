@@ -5,7 +5,6 @@ import {
   makeScheduleSchema,
   nextStatus,
   resolveSchema,
-  statusSchema,
   triageSchema,
   type MaintenanceRequest,
   type TimelineEvent,
@@ -26,11 +25,8 @@ import {
   validationError,
 } from "./utils";
 
-const SORTS = {
-  newest: (a: MaintenanceRequest, b: MaintenanceRequest) => b.createdAt.localeCompare(a.createdAt),
-  oldest: (a: MaintenanceRequest, b: MaintenanceRequest) => a.createdAt.localeCompare(b.createdAt),
-  updated: (a: MaintenanceRequest, b: MaintenanceRequest) => b.updatedAt.localeCompare(a.updatedAt),
-} as const;
+const newestFirst = (a: MaintenanceRequest, b: MaintenanceRequest) =>
+  b.createdAt.localeCompare(a.createdAt);
 
 const WORKFLOW_ACTIONS = ["triage", "assign", "schedule", "start", "resolve"] as const;
 type WorkflowAction = (typeof WORKFLOW_ACTIONS)[number];
@@ -85,7 +81,7 @@ function record(
 }
 
 export const requestHandlers = [
-  // GET /api/requests?buildingId&status&sort
+  // GET /api/requests?buildingId, newest first. Filtering and sorting happen in the queue (queue.ts).
   // Residents: own unit. Coordinators: buildingId must be the active building. Managers: any.
   http.get(`${API}/requests`, ({ request, cookies }) => {
     const user = sessionUser(cookies);
@@ -96,17 +92,12 @@ export const requestHandlers = [
     const denied = deny(user, "request:list", user.role === "resident" ? {} : { buildingId });
     if (denied) return denied;
 
-    const status = statusSchema.safeParse(url.searchParams.get("status"));
-    const sort =
-      SORTS[(url.searchParams.get("sort") as keyof typeof SORTS) ?? "newest"] ?? SORTS.newest;
-
     const db = getDb();
     const requests = db.requests
       .filter((item) =>
         user.role === "resident" ? item.unitId === user.unitId : item.buildingId === buildingId,
       )
-      .filter((item) => !status.success || item.status === status.data)
-      .sort(sort)
+      .sort(newestFirst)
       .map((item) => toListItem(db, item));
     return HttpResponse.json(requests);
   }),
