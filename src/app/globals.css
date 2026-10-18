@@ -1,26 +1,155 @@
 @import "tailwindcss";
 
+/* Theme is driven by data-theme on <html> (set before paint by ThemeScript). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Design tokens. Components use the Tailwind utilities generated from @theme
+ * below (bg-surface, text-fg-muted, border-border, ...), never raw colours.
+ * Text/background pairs are chosen to meet WCAG AA (4.5:1 body, 3:1 UI).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-muted: #f0f2f5;
+  --surface-raised: #ffffff;
+  --border: #d5dbe3;
+  --border-strong: #8d98a8;
+  --fg: #111827;
+  --fg-muted: #4b5563;
+  --fg-subtle: #5f6b7a;
+  --primary: #1d5bb8;
+  --primary-hover: #174a96;
+  --primary-fg: #ffffff;
+  --primary-soft: #e8f0fc;
+  --danger: #b42318;
+  --danger-hover: #912018;
+  --danger-fg: #ffffff;
+  --danger-soft: #fdecea;
+  --success: #067647;
+  --success-soft: #e7f6ee;
+  --warning: #93370d;
+  --warning-soft: #fef3e2;
+  --info: #175cd3;
+  --info-soft: #eaf2ff;
+  --neutral-soft: #eef0f3;
+  --ring: #1d5bb8;
+  --overlay: rgb(17 24 39 / 0.45);
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(16 24 40 / 0.1), 0 2px 4px -2px rgb(16 24 40 / 0.06);
+  --shadow-lg: 0 16px 32px -8px rgb(16 24 40 / 0.18);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e131a;
+  --surface: #151b24;
+  --surface-muted: #1c2430;
+  --surface-raised: #1e2733;
+  --border: #2d3846;
+  --border-strong: #6b7a8f;
+  --fg: #e8ecf1;
+  --fg-muted: #b0bac7;
+  --fg-subtle: #94a0b0;
+  --primary: #79aefc;
+  --primary-hover: #9cc3ff;
+  --primary-fg: #0b1526;
+  --primary-soft: #1a2a44;
+  --danger: #ff9b91;
+  --danger-hover: #ffb7b0;
+  --danger-fg: #2a0a07;
+  --danger-soft: #3a1a18;
+  --success: #6fd6a2;
+  --success-soft: #12301f;
+  --warning: #f7bd66;
+  --warning-soft: #36260f;
+  --info: #8bbcff;
+  --info-soft: #172843;
+  --neutral-soft: #232c38;
+  --ring: #79aefc;
+  --overlay: rgb(0 0 0 / 0.6);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 32px -8px rgb(0 0 0 / 0.6);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Type scale (1.125 minor third-ish), paired line heights. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    background: var(--bg);
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

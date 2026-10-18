@@ -2,10 +2,17 @@ import react from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
+const src = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: [
+      { find: /^@\//, replacement: `${src("./src")}/` },
+      // Portable stories: our UI components don't depend on Next, so the plain
+      // React renderer is enough (the Next framework aliases React internals).
+      { find: /^@storybook\/nextjs-vite$/, replacement: "@storybook/react" },
+    ],
   },
   test: {
     environment: "jsdom",
