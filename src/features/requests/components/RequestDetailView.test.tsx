@@ -1,7 +1,11 @@
 import { http, HttpResponse } from "msw";
 import { getDb } from "@/mocks/db";
 import { server } from "@/mocks/node";
-import { renderInWorkspace, screen, waitFor, within } from "@/test/render";
+import { sessionKeys } from "@/features/session/api";
+import { sessionSchema } from "@/features/session/schema";
+import { api } from "@/lib/api-client";
+import { readSessionCookie } from "@/lib/auth/session-cookie";
+import { act, renderInWorkspace, screen, waitFor, within } from "@/test/render";
 import { RequestDetailView } from "./RequestDetailView";
 import { sortVendors } from "./WorkflowActions";
 
@@ -153,6 +157,15 @@ describe("RequestDetailView", () => {
   it("switches a coordinator to the request's building on a deep link", async () => {
     await openDetail("req_029", "coordinator", "bld_harbor");
     expect(await screen.findByText("Maple Court", { selector: "p" })).toBeInTheDocument();
+  });
+
+  it("does not switch back when the coordinator later picks another building", async () => {
+    const { queryClient } = await openDetail("req_030", "coordinator", "bld_harbor");
+    const maple = await api.put("/session/building", sessionSchema, { buildingId: "bld_maple" });
+    act(() => queryClient.setQueryData(sessionKeys.current, maple));
+    expect(await screen.findByText("Maple Court", { selector: "p" })).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(readSessionCookie()?.activeBuildingId).toBe("bld_maple");
   });
 });
 
