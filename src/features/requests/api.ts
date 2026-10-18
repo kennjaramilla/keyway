@@ -5,15 +5,10 @@ import {
   requestDetailSchema,
   requestListItemsSchema,
   type RequestCreate,
-  type Status,
   type VisitWindow,
 } from "./schema";
 
-export type RequestFilters = {
-  buildingId: string;
-  status?: Status;
-  sort?: "newest" | "oldest" | "updated";
-};
+export type RequestFilters = { buildingId: string };
 
 /**
  * Query keys. Building-scoped keys include the buildingId so switching
@@ -30,8 +25,8 @@ export const vendorKeys = {
   list: (buildingId: string) => ["vendors", { buildingId }] as const,
 };
 
-export const fetchRequests = ({ buildingId, status, sort }: RequestFilters, signal?: AbortSignal) =>
-  api.get("/requests", requestListItemsSchema, { query: { buildingId, status, sort }, signal });
+export const fetchRequests = ({ buildingId }: RequestFilters, signal?: AbortSignal) =>
+  api.get("/requests", requestListItemsSchema, { query: { buildingId }, signal });
 
 export const fetchRequest = (id: string, signal?: AbortSignal) =>
   api.get(`/requests/${encodeURIComponent(id)}`, requestDetailSchema, { signal });
