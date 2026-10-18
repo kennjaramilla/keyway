@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
   cacheComponents: true,
+  // Pages render after the in-browser mock API starts, so none can be instant; only
+  // validate segments that opt in (otherwise every page logs a dev-only error).
+  experimental: { instantInsights: { validationLevel: "manual-warning" } },
   partialPrefetching: true,
   turbopack: {
     rules: {
