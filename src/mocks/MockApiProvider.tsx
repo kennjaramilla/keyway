@@ -7,7 +7,7 @@ const mockingEnabled = process.env.NEXT_PUBLIC_API_MOCKING !== "off";
 /**
  * Starts the MSW worker (the demo's only "backend", see ADR 0001) and holds
  * rendering until it is ready, so no request escapes before it is intercepted.
- * `?reset` on any URL re-seeds the mock db first.
+ * `?reset` on any URL re-seeds the mock db first; `?fail=messages` arms a demo failure.
  */
 export function MockApiProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(!mockingEnabled);
@@ -17,6 +17,8 @@ export function MockApiProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       const url = new URL(window.location.href);
+      const { armFailuresFromUrl } = await import("./demo-failures");
+      armFailuresFromUrl(url);
       if (url.searchParams.has("reset")) {
         const { resetDb } = await import("./db");
         resetDb();
