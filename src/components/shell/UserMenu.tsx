@@ -32,7 +32,7 @@ export function UserMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button ref={triggerRef} variant="ghost" size="sm" className="h-10 gap-2 px-2">
+          <Button ref={triggerRef} variant="ghost" size="sm" className="h-10 shrink-0 gap-2 px-2">
             <Avatar name={user.name} size="sm" decorative />
             <span className="flex flex-col items-start leading-tight">
               <span className="sr-only text-sm font-medium sm:not-sr-only">{user.name}</span>
@@ -40,7 +40,7 @@ export function UserMenu() {
                 {ROLE_LABELS[user.role]}
               </span>
             </span>
-            <ChevronDown aria-hidden className="text-fg-muted" />
+            <ChevronDown aria-hidden className="hidden text-fg-muted sm:block" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-60">

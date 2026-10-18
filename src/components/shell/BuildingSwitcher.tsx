@@ -23,9 +23,9 @@ export function BuildingSwitcher() {
 
   const label = (
     <>
-      <Building aria-hidden className="size-4 text-fg-muted" />
+      <Building aria-hidden className="size-4 shrink-0 text-fg-muted" />
       <span className="truncate font-medium">{activeBuilding.name}</span>
-      {unit && <span className="text-fg-muted">· Unit {unit.label}</span>}
+      {unit && <span className="shrink-0 text-fg-muted">· Unit {unit.label}</span>}
     </>
   );
 
@@ -37,6 +37,7 @@ export function BuildingSwitcher() {
             <Button
               variant="ghost"
               size="sm"
+              className="min-w-0 shrink"
               aria-label={`Building: ${activeBuilding.name}. Switch building`}
             >
               {label}
