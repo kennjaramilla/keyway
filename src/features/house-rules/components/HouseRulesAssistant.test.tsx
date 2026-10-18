@@ -79,12 +79,17 @@ describe("HouseRulesAssistant", () => {
     ).toHaveAttribute("href", "/messages/req_030");
   });
 
-  it("offers coordinators their inbox instead", async () => {
+  it("offers coordinators their inbox and staff wording instead", async () => {
     const { user } = renderInWorkspace(<HouseRulesAssistant />, { as: "coordinator" });
     await user.type(
       await screen.findByLabelText("Your question"),
       "Is there a swimming pool or gym?{Enter}",
     );
+    expect(
+      await within(await answer()).findByText(
+        "I don't know. Check with the resident or your property manager.",
+      ),
+    ).toBeInTheDocument();
     expect(
       await within(await answer()).findByRole("link", { name: "Go to messages" }),
     ).toHaveAttribute("href", "/messages");
