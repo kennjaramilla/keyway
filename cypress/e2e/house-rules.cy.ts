@@ -11,7 +11,7 @@ describe("house rules assistant", () => {
     cy.visitFresh("/house-rules");
     cy.title().should("eq", "House rules · Harbor View Lofts · Keyway");
     cy.findByText("Answer mode: Retrieval").should("be.visible");
-    cy.findByText("Answers come only from Harbor View Lofts's house rules.").should("exist");
+    cy.findByText("Answers come only from the house rules of Harbor View Lofts.").should("exist");
 
     ask(PETS);
     cy.findByRole("region", { name: "Answer" }).within(() => {
@@ -39,7 +39,9 @@ describe("house rules assistant", () => {
 
     ask("What is the Wi-Fi password?");
     cy.findByRole("region", { name: "Answer" }).within(() => {
-      cy.findByText("I don't know. Please message your coordinator.").should("be.visible");
+      cy.findByText("I don't know. Check with the resident or your property manager.").should(
+        "be.visible",
+      );
       cy.findByRole("list", { name: "Sources" }).should("not.exist");
     });
     cy.checkPageA11y();

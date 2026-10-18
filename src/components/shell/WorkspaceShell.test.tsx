@@ -6,6 +6,7 @@ import { mockRouter, navigationState } from "@/test/next-navigation";
 import { renderInWorkspace, renderWithProviders, screen, within } from "@/test/render";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { PageHeader } from "./PageHeader";
+import { markFirstRenderDone } from "./route-focus";
 import { WorkspaceShell } from "./WorkspaceShell";
 
 const Page = () => <PageHeader title="Requests" />;
@@ -101,6 +102,22 @@ describe("WorkspaceShell", () => {
     renderInWorkspace(<Page />, { as: "manager" });
     expect(await screen.findByText("All buildings")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Switch building/ })).not.toBeInTheDocument();
+  });
+
+  it("moves focus to the new page's heading after a client-side navigation", async () => {
+    const { rerender } = renderInWorkspace(<Page />);
+    await screen.findByRole("heading", { level: 1, name: "Requests" });
+    expect(document.body).toHaveFocus();
+
+    markFirstRenderDone();
+    navigationState.pathname = "/house-rules";
+    rerender(
+      <WorkspaceShell>
+        <PageHeader title="House rules" />
+      </WorkspaceShell>,
+    );
+    const heading = screen.getByRole("heading", { level: 1, name: "House rules" });
+    await vi.waitFor(() => expect(heading).toHaveFocus());
   });
 
   it("signs out", async () => {

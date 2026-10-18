@@ -2488,14 +2488,14 @@
       "id": "msg_006",
       "threadId": "thr_002",
       "authorId": "usr_coord_grace",
-      "body": "Sorry about that, Diego. Tidewater Plumbing's earliest slot is Monday 8 to 10 AM. Does that work?",
+      "body": "Sorry about that, Diego. I've booked Tidewater Plumbing's earliest slot; the time is on the request. Does that work?",
       "createdAt": "2026-10-17T12:40:00Z"
     },
     {
       "id": "msg_007",
       "threadId": "thr_002",
       "authorId": "usr_res_diego",
-      "body": "Monday works. I'll be at work, so they have permission to enter.",
+      "body": "That works. I'll be at work, so they have permission to enter.",
       "createdAt": "2026-10-17T13:02:00Z"
     },
     {

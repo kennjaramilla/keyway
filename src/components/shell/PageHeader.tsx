@@ -34,7 +34,9 @@ export function PageHeader({
       <PageTitle title={title} scope={scope} />
       <div className="flex flex-col gap-1">
         <p className="text-sm font-medium text-fg-muted">{scopeLabel}</p>
-        <h1 className="text-2xl font-semibold text-fg">{title}</h1>
+        <h1 tabIndex={-1} className="text-2xl font-semibold text-fg outline-none">
+          {title}
+        </h1>
         {description && <p className="text-sm text-fg-muted">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}

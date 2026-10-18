@@ -18,7 +18,7 @@ export function SignInScreen() {
   const signIn = useSignIn();
 
   return (
-    <main id="main" className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:py-16">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:py-16">
       <header className="flex flex-col gap-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-primary">
           <Building2 aria-hidden className="size-5" /> Keyway

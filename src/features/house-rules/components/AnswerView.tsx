@@ -1,9 +1,13 @@
 import { Fragment, useId } from "react";
+import { useCurrentSession } from "@/features/session/hooks";
 import type { AssistantAnswer } from "../schema";
 import { highlight } from "../retrieval";
 import { MessageCoordinatorButton } from "./MessageCoordinatorButton";
 
 type Citation = AssistantAnswer["citations"][number];
+
+/** Staff can't "message your coordinator"; the API's fallback sentence is written for residents. */
+const STAFF_FALLBACK = "I don't know. Check with the resident or your property manager.";
 
 const sourceLabel = (citation: Citation) =>
   `${citation.documentTitle} §${citation.section} ${citation.title}`;
@@ -11,12 +15,15 @@ const sourceLabel = (citation: Citation) =>
 /** Answer text with each [n] linked to its numbered source, plus the source passages. */
 export function AnswerView({ question, answer }: { question: string; answer: AssistantAnswer }) {
   const id = useId();
+  const { user } = useCurrentSession();
   const sourceId = (n: number) => `${id}-source-${n}`;
 
   if (!answer.answered) {
     return (
       <div className="flex flex-col items-start gap-3">
-        <p className="text-base text-fg">{answer.answer}</p>
+        <p className="text-base text-fg">
+          {user.role === "resident" ? answer.answer : STAFF_FALLBACK}
+        </p>
         <MessageCoordinatorButton />
       </div>
     );

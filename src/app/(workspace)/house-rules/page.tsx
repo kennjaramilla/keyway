@@ -10,7 +10,7 @@ export default function HouseRulesPage() {
     <>
       <PageHeader
         title="House rules"
-        description={`Answers come only from ${activeBuilding.name}'s house rules.`}
+        description={`Answers come only from the house rules of ${activeBuilding.name}.`}
       />
       {/* Keyed by building so a switch clears the previous building's answer. */}
       <HouseRulesAssistant key={activeBuilding.id} />

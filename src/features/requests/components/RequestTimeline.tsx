@@ -1,5 +1,6 @@
 import { STATUS_LABELS, type RequestDetail, type TimelineEvent } from "../schema";
-import { formatDateTime, formatVisitWindow } from "../format";
+import { formatDateTime } from "@/lib/datetime";
+import { formatVisitWindow } from "../format";
 
 const EVENT_LABELS: Record<TimelineEvent["type"], string> = {
   created: "Request submitted",
@@ -44,7 +45,7 @@ export function RequestTimeline({ request }: { request: RequestDetail }) {
             </p>
             <p className="text-sm text-fg-muted">
               {request.people[event.actorId] ?? "Someone"} ·{" "}
-              <time dateTime={event.at}>{formatDateTime(event.at)}</time>
+              <time dateTime={event.at}>{formatDateTime(event.at, request.timeZone)}</time>
             </p>
             {detail && <p className="mt-1 text-sm text-fg">{detail}</p>}
             {event.note && <p className="mt-1 text-sm whitespace-pre-line text-fg">{event.note}</p>}
