@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addDays, localDate, localMinutes, zonedTimeToUtc } from "./time";
 
 // Enums and labels (docs/spec/data-model.md). Labels are the only UI copy for them.
 
@@ -183,18 +184,23 @@ export function isOverdue(
 
 // Action inputs (forms + MSW validation). `today` is building-local YYYY-MM-DD.
 
-function addDays(isoDate: string, days: number) {
-  const date = new Date(`${isoDate}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + days);
-  return date.toISOString().slice(0, 10);
-}
+const createWindowSchema = z.object({
+  date: z.iso.date({ error: "Choose a date." }),
+  slot: z.enum(TIME_SLOTS, { error: "Choose a time of day." }),
+});
+
+const isBlankWindow = (value: unknown) =>
+  typeof value === "object" &&
+  value !== null &&
+  !(value as { date?: unknown }).date &&
+  !(value as { slot?: unknown }).slot;
 
 export function makeRequestCreateSchema(today: string) {
   const lastDay = addDays(today, 14);
   return z
     .object({
-      category: categorySchema,
-      urgency: urgencySchema,
+      category: z.enum(CATEGORIES, { error: "Choose a category." }),
+      urgency: z.enum(URGENCIES, { error: "Choose an urgency." }),
       title: z
         .string()
         .trim()
@@ -205,15 +211,19 @@ export function makeRequestCreateSchema(today: string) {
         .trim()
         .min(10, "Add a few more details (at least 10 characters).")
         .max(1000, "Keep the description under 1,000 characters."),
-      location: locationSchema,
-      preferredWindows: z
-        .array(
-          preferredWindowSchema.refine((window) => window.date >= today && window.date <= lastDay, {
-            message: "Pick a date in the next 14 days.",
-            path: ["date"],
-          }),
-        )
-        .max(3, "Choose up to 3 time windows."),
+      location: z.enum(LOCATIONS, { error: "Choose where in your unit." }),
+      // Untouched blank rows in the form are dropped, not reported.
+      preferredWindows: z.preprocess(
+        (value) => (Array.isArray(value) ? value.filter((item) => !isBlankWindow(item)) : value),
+        z
+          .array(
+            createWindowSchema.refine((window) => window.date >= today && window.date <= lastDay, {
+              message: "Pick a date in the next 14 days.",
+              path: ["date"],
+            }),
+          )
+          .max(3, "Choose up to 3 time windows."),
+      ),
       permissionToEnter: z.boolean({ error: "Choose yes or no." }),
       entryNotes: z.string().trim().max(200, "Keep entry notes under 200 characters.").optional(),
     })
@@ -235,7 +245,8 @@ export function makeRequestCreateSchema(today: string) {
       }
     });
 }
-export type RequestCreate = z.infer<ReturnType<typeof makeRequestCreateSchema>>;
+export type RequestCreateInput = z.input<ReturnType<typeof makeRequestCreateSchema>>;
+export type RequestCreate = z.output<ReturnType<typeof makeRequestCreateSchema>>;
 
 export const triageSchema = z.object({
   category: categorySchema.optional(),
@@ -252,3 +263,85 @@ export const resolveSchema = z.object({
     .min(5, "Describe what was done (at least 5 characters).")
     .max(500, "Keep the note under 500 characters."),
 });
+
+// Scheduling a visit window (building-local rules, docs/spec/data-model.md).
+
+export type ScheduleContext = { now: Date; timeZone: string; urgency: Urgency };
+type WindowIssue = { field: "start" | "end"; message: string };
+
+const HOUR_MS = 3_600_000;
+const OPEN_MINUTES = 8 * 60;
+const CLOSE_MINUTES = 20 * 60;
+
+/** Everything wrong with a visit window, so the form and the API report the same errors. */
+export function visitWindowIssues(start: Date, end: Date, ctx: ScheduleContext): WindowIssue[] {
+  const issues: WindowIssue[] = [];
+  if (start <= ctx.now)
+    issues.push({ field: "start", message: "Pick a start time in the future." });
+  if (start.getTime() > ctx.now.getTime() + 30 * 24 * HOUR_MS) {
+    issues.push({ field: "start", message: "Pick a date in the next 30 days." });
+  }
+  const hours = (end.getTime() - start.getTime()) / HOUR_MS;
+  if (hours <= 0) {
+    issues.push({ field: "end", message: "End the visit after it starts." });
+  } else if (hours < 1 || hours > 4) {
+    issues.push({ field: "end", message: "Visits must be 1 to 4 hours long." });
+  } else if (localDate(start, ctx.timeZone) !== localDate(end, ctx.timeZone)) {
+    issues.push({ field: "end", message: "Start and end on the same day." });
+  }
+  const outsideHours =
+    localMinutes(start, ctx.timeZone) < OPEN_MINUTES ||
+    (hours > 0 && localMinutes(end, ctx.timeZone) > CLOSE_MINUTES);
+  if (ctx.urgency !== "emergency" && outsideHours) {
+    issues.push({ field: "start", message: "Book between 8:00 and 20:00 building time." });
+  }
+  return issues;
+}
+
+/** API body for POST /requests/:id/schedule. */
+export function makeScheduleSchema(ctx: ScheduleContext) {
+  return visitWindowSchema.superRefine((window, refine) => {
+    for (const issue of visitWindowIssues(new Date(window.start), new Date(window.end), ctx)) {
+      refine.addIssue({ code: "custom", path: [issue.field], message: issue.message });
+    }
+  });
+}
+
+/** The schedule form: a building-local date and times, transformed into a UTC window. */
+export function makeScheduleFormSchema(ctx: ScheduleContext) {
+  const time = z.string().regex(/^\d{2}:\d{2}$/, "Choose a time.");
+  return z
+    .object({ date: z.iso.date({ error: "Choose a date." }), startTime: time, endTime: time })
+    .superRefine((value, refine) => {
+      const start = zonedTimeToUtc(value.date, value.startTime, ctx.timeZone);
+      const end = zonedTimeToUtc(value.date, value.endTime, ctx.timeZone);
+      for (const issue of visitWindowIssues(start, end, ctx)) {
+        const path = issue.field === "start" ? "startTime" : "endTime";
+        refine.addIssue({ code: "custom", path: [path], message: issue.message });
+      }
+    })
+    .transform((value) => ({
+      start: zonedTimeToUtc(value.date, value.startTime, ctx.timeZone).toISOString(),
+      end: zonedTimeToUtc(value.date, value.endTime, ctx.timeZone).toISOString(),
+    }));
+}
+
+// Enriched API responses: names the UI needs without extra lookups.
+
+export const requestListItemSchema = requestSchema.extend({
+  unitLabel: z.string(),
+  vendorName: z.string().nullable(),
+});
+export type RequestListItem = z.infer<typeof requestListItemSchema>;
+export const requestListItemsSchema = z.array(requestListItemSchema);
+
+export const requestDetailSchema = requestListItemSchema.extend({
+  buildingName: z.string(),
+  timeZone: z.string(),
+  vendor: z
+    .object({ id: z.string(), name: z.string(), trade: categorySchema, phone: z.string() })
+    .nullable(),
+  /** actorId -> display name for the timeline. */
+  people: z.record(z.string(), z.string()),
+});
+export type RequestDetail = z.infer<typeof requestDetailSchema>;
