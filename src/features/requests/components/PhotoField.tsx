@@ -50,7 +50,10 @@ export function PhotoField() {
               const problem = photoError(file);
               setError(problem ?? undefined);
               if (problem) return clear();
-              setPreview({ url: URL.createObjectURL(file), name: file.name });
+              const url = URL.createObjectURL(file);
+              // Only ever render a local blob: preview, never a URL derived from user text.
+              if (!url.startsWith("blob:")) return clear();
+              setPreview({ url, name: file.name });
             }}
           />
           {preview && (
