@@ -8,9 +8,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { useCurrentSession } from "@/features/session/hooks";
+import { formatDateTime } from "@/lib/datetime";
 import { useThreads } from "../hooks/useThreads";
-
-const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 /** Conversations in scope, most recent first, with unread counts. */
 export function ThreadList() {
@@ -81,7 +80,7 @@ export function ThreadList() {
                 <p className="truncate text-sm text-fg-muted">{preview}</p>
               </div>
               <time dateTime={thread.lastMessageAt} className="shrink-0 text-xs text-fg-muted">
-                {timeFormat.format(new Date(thread.lastMessageAt))}
+                {formatDateTime(thread.lastMessageAt, activeBuilding.timezone)}
               </time>
               <ChevronRight aria-hidden className="size-4 shrink-0 text-fg-subtle" />
             </Link>

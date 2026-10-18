@@ -29,7 +29,7 @@ export function MessageThread({
   /** Heading level for the empty state (3 when embedded under a card title). */
   headingLevel?: 2 | 3;
 }) {
-  const { user } = useCurrentSession();
+  const { user, activeBuilding } = useCurrentSession();
   const [draft, setDraft] = useState("");
   // Rollback: put a failed message back in the box unless the user already typed something new.
   const onFailed = useCallback(
@@ -88,6 +88,7 @@ export function MessageThread({
               message={message}
               author={author(message.authorId)}
               own={message.authorId === user.id}
+              timeZone={activeBuilding.timezone}
               onRetry={
                 message.status === "failed"
                   ? () =>

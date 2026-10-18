@@ -1,25 +1,12 @@
+import { TIME, zonedFormatter } from "@/lib/datetime";
 import { TIME_SLOT_LABELS, type PreferredWindow, type VisitWindow } from "./schema";
 
-const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
-const shortDate = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" });
-
-export const formatDateTime = (iso: string) => dateTime.format(new Date(iso));
-export const formatDate = (iso: string) => shortDate.format(new Date(iso));
-
-/** "Tue, Oct 20, 10:00 – 12:00" in the building's timezone. */
+/** "Tue, Oct 20, 10:00 AM – 12:00 PM EDT" */
 export function formatVisitWindow({ start, end }: VisitWindow, timeZone: string) {
-  const day = new Intl.DateTimeFormat(undefined, {
-    timeZone,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-  const time = new Intl.DateTimeFormat(undefined, {
-    timeZone,
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${day.format(new Date(start))}, ${time.format(new Date(start))} – ${time.format(new Date(end))}`;
+  const day = zonedFormatter(timeZone, { weekday: "short", month: "short", day: "numeric" });
+  const from = zonedFormatter(timeZone, TIME).format(new Date(start));
+  const to = zonedFormatter(timeZone, { ...TIME, timeZoneName: "short" }).format(new Date(end));
+  return `${day.format(new Date(start))}, ${from} – ${to}`;
 }
 
 /** "Tue, Oct 20 · Morning (8–12)" for a building-local preferred window. */

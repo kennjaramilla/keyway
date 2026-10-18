@@ -24,7 +24,8 @@ import {
 } from "@/components/ui/table";
 import { useCurrentSession } from "@/features/session/hooks";
 import { can } from "@/lib/auth/permissions";
-import { formatAge, formatDate, formatVisitWindow } from "../format";
+import { formatDate } from "@/lib/datetime";
+import { formatAge, formatVisitWindow } from "../format";
 import { useRequests } from "../hooks/useRequests";
 import {
   applyQueue,
@@ -220,12 +221,12 @@ function RequestRow({
       </TableCell>
       <TableCell>
         <time dateTime={request.createdAt}>
-          {staff ? formatAge(request.createdAt) : formatDate(request.createdAt)}
+          {staff ? formatAge(request.createdAt) : formatDate(request.createdAt, timeZone)}
         </time>
       </TableCell>
       {staff ? (
         <TableCell>
-          <time dateTime={request.updatedAt}>{formatDate(request.updatedAt)}</time>
+          <time dateTime={request.updatedAt}>{formatDate(request.updatedAt, timeZone)}</time>
         </TableCell>
       ) : (
         <TableCell>

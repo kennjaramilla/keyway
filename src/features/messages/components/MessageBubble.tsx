@@ -3,20 +3,21 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS } from "@/lib/auth/demo-users";
 import { cn } from "@/lib/cn";
+import { formatDateTime } from "@/lib/datetime";
 import type { DisplayMessage } from "../outbox";
 import type { Participant } from "../schema";
-
-const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 export type MessageBubbleProps = {
   message: DisplayMessage;
   author: Participant;
   own: boolean;
+  /** The building's time zone; message times use it like the rest of the request. */
+  timeZone: string;
   onRetry?: () => void;
 };
 
 /** One message: author, role and time, the body, and its delivery state for your own messages. */
-export function MessageBubble({ message, author, own, onRetry }: MessageBubbleProps) {
+export function MessageBubble({ message, author, own, timeZone, onRetry }: MessageBubbleProps) {
   return (
     <li className={cn("flex gap-3", own && "flex-row-reverse")}>
       <Avatar name={author.name} size="sm" decorative />
@@ -24,7 +25,7 @@ export function MessageBubble({ message, author, own, onRetry }: MessageBubblePr
         <p className="text-xs text-fg-muted">
           <span className="font-medium text-fg">{own ? "You" : author.name}</span>
           <span> · {ROLE_LABELS[author.role]} · </span>
-          <time dateTime={message.createdAt}>{timeFormat.format(new Date(message.createdAt))}</time>
+          <time dateTime={message.createdAt}>{formatDateTime(message.createdAt, timeZone)}</time>
         </p>
         <p
           className={cn(

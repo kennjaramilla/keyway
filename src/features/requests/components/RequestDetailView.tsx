@@ -14,7 +14,8 @@ import { MessageThread } from "@/features/messages/components/MessageThread";
 import { useCurrentSession, useSwitchBuilding } from "@/features/session/hooks";
 import { ApiError } from "@/lib/api-client";
 import { roleCan } from "@/lib/auth/permissions";
-import { formatDateTime, formatPreferredWindow, formatVisitWindow } from "../format";
+import { formatDateTime } from "@/lib/datetime";
+import { formatPreferredWindow, formatVisitWindow } from "../format";
 import { useRequest } from "../hooks/useRequest";
 import { CATEGORY_LABELS, dueAt, isOverdue, LOCATION_LABELS } from "../schema";
 import { RequestStatusBadge, UrgencyBadge } from "./RequestStatusBadge";
@@ -113,11 +114,11 @@ export function RequestDetailView({ id }: { id: string }) {
               <p className="mb-5 text-sm whitespace-pre-line text-fg">{item.description}</p>
               <dl className="grid gap-4 sm:grid-cols-2">
                 <Detail term="Location">{LOCATION_LABELS[item.location]}</Detail>
-                <Detail term="Submitted">{formatDateTime(item.createdAt)}</Detail>
+                <Detail term="Submitted">{formatDateTime(item.createdAt, item.timeZone)}</Detail>
                 <Detail term="Due by">
                   {item.status === "resolved"
-                    ? "Resolved"
-                    : formatDateTime(dueAt(item).toISOString())}
+                    ? "—"
+                    : formatDateTime(dueAt(item).toISOString(), item.timeZone)}
                   {overdue && " (overdue)"}
                 </Detail>
                 <Detail term="Permission to enter">{item.permissionToEnter ? "Yes" : "No"}</Detail>
@@ -140,11 +141,11 @@ export function RequestDetailView({ id }: { id: string }) {
                 </Detail>
                 <Detail term="Visit">
                   {item.visitWindow
-                    ? `${formatVisitWindow(item.visitWindow, item.timeZone)} (building time)`
+                    ? formatVisitWindow(item.visitWindow, item.timeZone)
                     : "Not scheduled yet"}
                 </Detail>
                 {item.resolvedAt && (
-                  <Detail term="Resolved">{formatDateTime(item.resolvedAt)}</Detail>
+                  <Detail term="Resolved">{formatDateTime(item.resolvedAt, item.timeZone)}</Detail>
                 )}
               </dl>
             </CardContent>

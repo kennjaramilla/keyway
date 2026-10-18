@@ -53,7 +53,7 @@ describe("coordinator workflow", () => {
       cy.findByRole("button", { name: "Schedule visit" }).click();
     });
     cy.findByText("KW-1030 scheduled").should("be.visible");
-    cy.findByText(/\(building time\)/).should("be.visible");
+    cy.findAllByText(/– 12:00 PM (EDT|EST)$/).should("have.length.at.least", 1);
 
     cy.findByRole("button", { name: "Mark in progress" }).click();
     cy.findByText("KW-1030 marked in progress").should("be.visible");
