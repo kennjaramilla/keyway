@@ -177,7 +177,7 @@ describe("RequestDetailView", () => {
     const { user } = await openDetail("req_023");
     await user.click(screen.getByRole("button", { name: "Mark in progress" }));
     expect(await screen.findByText("Couldn't update KW-1023")).toBeInTheDocument();
-    expect(screen.getByText(/we've refreshed it/i)).toBeInTheDocument();
+    expect(screen.getByText(/we've refreshed it/i, { selector: "div" })).toBeInTheDocument();
     expect(await screen.findByRole("button", { name: "Mark in progress" })).toBeInTheDocument();
     expect(getDb().requests.find((r) => r.id === "req_023")?.status).toBe("scheduled");
   });
