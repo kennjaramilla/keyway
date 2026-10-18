@@ -11,12 +11,14 @@ import { ApiError } from "@/lib/api-client";
 import { SIGN_IN_PATH } from "@/lib/auth/routes";
 import { BuildingSwitcher } from "./BuildingSwitcher";
 import { SideNav } from "./SideNav";
+import { useFocusOnNavigate } from "./route-focus";
 import { UserMenu } from "./UserMenu";
 
 /** Authenticated layout: skip link, header (building + user menu), nav and main. */
 export function WorkspaceShell({ children }: { children: ReactNode }) {
   const session = useSession();
   const router = useRouter();
+  useFocusOnNavigate();
   const signedOut = session.error instanceof ApiError && session.error.status === 401;
   const current = useMemo(
     () => (session.data ? toCurrentSession(session.data) : null),
