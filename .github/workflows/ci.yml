@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  quality:
+    name: Quality (lint, format, typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: "0"
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+
+  unit:
+    name: Unit tests (coverage)
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: "0"
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 7
+
+  e2e:
+    name: E2E (Cypress on production build)
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - uses: cypress-io/github-action@v6
+        with:
+          build: npm run build
+          start: npm run start:e2e
+          wait-on: http://localhost:3100
+          wait-on-timeout: 120
+          browser: chrome
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          retention-days: 7
+
+  storybook:
+    name: Storybook build
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: "0"
+      - run: npm run build-storybook -- --quiet
+
+  # SonarQube: enable by removing `if: false` and adding SONAR_TOKEN and
+  # SONAR_HOST_URL secrets plus a sonar-project.properties file. It reuses the
+  # lcov report from the unit job.
+  sonarqube:
+    name: SonarQube (disabled)
+    if: false
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+  # Black Duck (SCA): enable by removing `if: false` and adding BLACKDUCK_URL
+  # and BLACKDUCK_API_TOKEN secrets. Scans npm dependencies for licence and
+  # vulnerability policy violations.
+  blackduck:
+    name: Black Duck SCA (disabled)
+    if: false
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: blackduck-inc/black-duck-security-scan@v2
+        with:
+          blackducksca_url: ${{ secrets.BLACKDUCK_URL }}
+          blackducksca_token: ${{ secrets.BLACKDUCK_API_TOKEN }}

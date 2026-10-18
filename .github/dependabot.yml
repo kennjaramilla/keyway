@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      storybook:
+        patterns: ["storybook", "@storybook/*", "eslint-plugin-storybook"]
+      testing:
+        patterns: ["vitest", "@vitest/*", "@testing-library/*", "cypress*", "msw"]
+      radix:
+        patterns: ["radix-ui", "@radix-ui/*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
