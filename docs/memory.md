@@ -10,14 +10,15 @@ Status and hand-off notes. Update this file at the end of each work session.
 - Design tokens (light/dark) and the component library in `src/components/ui` with stories and tests.
 - Demo sign-in (seeded people grouped by role), session cookie, `proxy.ts` gating, `permissions.ts`, and the workspace shell (nav, building switcher, user menu with theme, reset and sign out, plus a no-access page).
 - MSW mock API: session, buildings, demo reset, and requests list/detail with isolation. The full spec seed is loaded and re-timed to now.
-- Example slice: read-only requests list (`src/features/requests`).
+- Requests (engineer A): resident submit form (E2E-1), coordinator queue with URL filters/search/sort and overdue badges, detail with timeline, and the triage → assign → schedule → start → resolve workflow with optimistic updates (E2E-3). Endpoints: `POST /requests`, `POST /requests/:id/{action}`, `GET /vendors`. Schedule rules (building-local hours) live in `requests/schema.ts` and are shared by the form and the API.
+- Manager dashboard: `GET /api/dashboard` computed by `dashboard/metrics.ts`; KPI tiles and four bar charts, each with a "Show table" toggle.
 - Docs: CLAUDE.md, TESTING.md, ADRs 0001-0003, and the Claude skills `new-feature` and `qa`.
 - Deployed: https://kenn-keyway.vercel.app (Vercel project `keyway`, git-connected, production branch `main`).
 
 **Next (phase 2, see `docs/spec/user-stories.md`):**
 
-- Engineer A, requests: submit form (E2E-1), detail + timeline, coordinator workflow (triage/assign/schedule/start/resolve, E2E-3), queue filters and sort. Add the schedule-window schema (building-local hours) to `requests/schema.ts`.
-- Engineer B: messages (optimistic send + rollback, `?fail=messages`, E2E-4), house-rules assistant (`retrieval.ts`, `/api/assistant`, E2E-5), manager dashboard (charts + table alternative). Replace the placeholder pages in `src/app/(workspace)/{messages,house-rules,dashboard}`.
+- Requests P1 left: resident cancel (2.8), manager vendor reassignment UI is allowed by `can()` but untested, reopen (P2), mobile card layout for the queue (6.4).
+- Engineer B: messages (optimistic send + rollback, `?fail=messages`, E2E-4), house-rules assistant (`retrieval.ts`, `/api/assistant`, E2E-5).
 - Both: tenant isolation E2E-2 (detail page 404 view), and PRODUCTION-READINESS.md, docs/application-flow.md and docs/code-tour.md.
 
 ## How to resume
@@ -33,5 +34,6 @@ Status and hand-off notes. Update this file at the end of each work session.
 - Next 16 with `cacheComponents`: keep request-time reads (cookies) out of server components. Workspace pages are client components fed by TanStack Query.
 - Don't add a default `title` to root metadata: it would override the per-page "Page · Building · Keyway" `<title>` that `PageHeader` renders.
 - The theme script sits in `<body>`, because Cypress injects into `<head>` and a head script causes a hydration mismatch.
+- Cache Components keeps visited pages mounted but hidden, so Cypress `findByLabelText` can match a hidden page's field; prefer `findByRole` (it skips hidden elements).
 - `msw/browser` is aliased to a stub for server bundles in `next.config.ts`.
 - Storybook's `fn()` spies don't type-check against Vitest 5 mocks, so stories don't put `fn()` in `args` that tests override.
