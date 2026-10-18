@@ -10,9 +10,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/badge";
-import { MessageThreadLink } from "@/features/messages/components/MessageThreadLink";
+import { MessageThread } from "@/features/messages/components/MessageThread";
 import { useCurrentSession, useSwitchBuilding } from "@/features/session/hooks";
 import { ApiError } from "@/lib/api-client";
+import { roleCan } from "@/lib/auth/permissions";
 import { formatDateTime, formatPreferredWindow, formatVisitWindow } from "../format";
 import { useRequest } from "../hooks/useRequest";
 import { CATEGORY_LABELS, dueAt, isOverdue, LOCATION_LABELS } from "../schema";
@@ -92,12 +93,7 @@ export function RequestDetailView({ id }: { id: string }) {
       <PageHeader
         title={item.title}
         description={`${item.number} · Unit ${item.unitLabel} · ${CATEGORY_LABELS[item.category]}`}
-        actions={
-          <>
-            <WorkflowActions request={item} />
-            <MessageThreadLink requestId={item.id} />
-          </>
-        }
+        actions={<WorkflowActions request={item} />}
       />
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <span className="sr-only">Status:</span>
@@ -106,49 +102,63 @@ export function RequestDetailView({ id }: { id: string }) {
         <UrgencyBadge urgency={item.urgency} />
         {overdue && <StatusBadge tone="danger">Overdue</StatusBadge>}
       </div>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-5 text-sm whitespace-pre-line text-fg">{item.description}</p>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Detail term="Location">{LOCATION_LABELS[item.location]}</Detail>
-              <Detail term="Submitted">{formatDateTime(item.createdAt)}</Detail>
-              <Detail term="Due by">
-                {item.status === "resolved"
-                  ? "Resolved"
-                  : formatDateTime(dueAt(item).toISOString())}
-                {overdue && " (overdue)"}
-              </Detail>
-              <Detail term="Permission to enter">{item.permissionToEnter ? "Yes" : "No"}</Detail>
-              <Detail term="Preferred times">
-                {item.preferredWindows.length ? (
-                  <ul>
-                    {item.preferredWindows.map((window) => (
-                      <li key={`${window.date}-${window.slot}`}>{formatPreferredWindow(window)}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  "As soon as possible"
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-5 text-sm whitespace-pre-line text-fg">{item.description}</p>
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <Detail term="Location">{LOCATION_LABELS[item.location]}</Detail>
+                <Detail term="Submitted">{formatDateTime(item.createdAt)}</Detail>
+                <Detail term="Due by">
+                  {item.status === "resolved"
+                    ? "Resolved"
+                    : formatDateTime(dueAt(item).toISOString())}
+                  {overdue && " (overdue)"}
+                </Detail>
+                <Detail term="Permission to enter">{item.permissionToEnter ? "Yes" : "No"}</Detail>
+                <Detail term="Preferred times">
+                  {item.preferredWindows.length ? (
+                    <ul>
+                      {item.preferredWindows.map((window) => (
+                        <li key={`${window.date}-${window.slot}`}>
+                          {formatPreferredWindow(window)}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "As soon as possible"
+                  )}
+                </Detail>
+                <Detail term="Entry notes">{item.entryNotes || "None"}</Detail>
+                <Detail term="Vendor">
+                  {item.vendor ? `${item.vendor.name} · ${item.vendor.phone}` : "Not assigned yet"}
+                </Detail>
+                <Detail term="Visit">
+                  {item.visitWindow
+                    ? `${formatVisitWindow(item.visitWindow, item.timeZone)} (building time)`
+                    : "Not scheduled yet"}
+                </Detail>
+                {item.resolvedAt && (
+                  <Detail term="Resolved">{formatDateTime(item.resolvedAt)}</Detail>
                 )}
-              </Detail>
-              <Detail term="Entry notes">{item.entryNotes || "None"}</Detail>
-              <Detail term="Vendor">
-                {item.vendor ? `${item.vendor.name} · ${item.vendor.phone}` : "Not assigned yet"}
-              </Detail>
-              <Detail term="Visit">
-                {item.visitWindow
-                  ? `${formatVisitWindow(item.visitWindow, item.timeZone)} (building time)`
-                  : "Not scheduled yet"}
-              </Detail>
-              {item.resolvedAt && (
-                <Detail term="Resolved">{formatDateTime(item.resolvedAt)}</Detail>
-              )}
-            </dl>
-          </CardContent>
-        </Card>
+              </dl>
+            </CardContent>
+          </Card>
+          {roleCan(user.role, "thread:view") && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Messages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <MessageThread requestId={item.id} />
+              </CardContent>
+            </Card>
+          )}
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Timeline</CardTitle>

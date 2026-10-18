@@ -28,6 +28,12 @@ describe("RequestDetailView", () => {
     expect(timelineItems()[0]).toHaveTextContent("Request submitted");
     expect(timelineItems()[0]).toHaveTextContent("Amara Okafor");
     expect(actions()).not.toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "Messages" })).toBeInTheDocument();
+  });
+
+  it("leaves messages out for the manager", async () => {
+    await openDetail("req_001", "manager");
+    expect(screen.queryByRole("region", { name: "Messages" })).not.toBeInTheDocument();
   });
 
   it("shows 'Request not found' for another unit's request", async () => {
