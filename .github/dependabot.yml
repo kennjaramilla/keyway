@@ -1,18 +1,21 @@
 version: 2
 updates:
+  # Minor/patch only: majors are deliberate upgrades with their own PR.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
-      storybook:
-        patterns: ["storybook", "@storybook/*", "eslint-plugin-storybook"]
-      testing:
-        patterns: ["vitest", "@vitest/*", "@testing-library/*", "cypress*", "msw"]
-      radix:
-        patterns: ["radix-ui", "@radix-ui/*"]
+      minor-and-patch:
+        update-types: ["minor", "patch"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
