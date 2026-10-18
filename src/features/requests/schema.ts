@@ -341,7 +341,7 @@ export const requestDetailSchema = requestListItemSchema.extend({
   vendor: z
     .object({ id: z.string(), name: z.string(), trade: categorySchema, phone: z.string() })
     .nullable(),
-  /** actorId -> display name for the timeline. */
+  /** User or vendor id -> display name, for the timeline. */
   people: z.record(z.string(), z.string()),
 });
 export type RequestDetail = z.infer<typeof requestDetailSchema>;

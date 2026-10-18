@@ -53,7 +53,9 @@ function toDetail(db: Db, request: MaintenanceRequest) {
     vendor: vendor
       ? { id: vendor.id, name: vendor.name, trade: vendor.trade, phone: vendor.phone }
       : null,
-    people: Object.fromEntries(db.users.map((user) => [user.id, user.name])),
+    people: Object.fromEntries(
+      [...db.users, ...db.vendors].map((person) => [person.id, person.name]),
+    ),
   };
 }
 
