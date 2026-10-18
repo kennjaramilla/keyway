@@ -168,5 +168,9 @@ The demo error toggle: `?fail=messages` (or a dev-only setting) makes the next `
 - **Avg time to resolve**: mean of `resolvedAt − createdAt` (hours, displayed as "2.1 days") for requests resolved in the last 30 days, per building and overall.
 - **Overdue by urgency**: count of open requests where `now > createdAt + slaHours[urgency]`, grouped by urgency.
 - **Coordinator workload**: open requests per `coordinatorId`, split by status.
+- **Week on week**: requests created (and resolved) in the last 7 days vs the 7 days before; the 7-day series counts per building-local day.
+- **On-time performance**: over open requests plus those resolved in the last 30 days. Met = resolved by `dueAt`, or open and less than halfway to it; at risk = open and past halfway; breached = resolved late or overdue. On-time rate = (met + at risk) / total.
+- **Building health**: open, overdue and on-time rate per building.
+- **Vendor status**: per vendor from its open requests: on site (any in progress), scheduled, assigned, or available.
 
-With the seed as of anchor time, these come out as follows: open Harbor 7 / Maple 7 / Linden 6; overdue high 2 (KW-1014, KW-1017), normal 1 (KW-1010), low 1 (KW-1006); workload Grace 14, Theo 6.
+With the seed as of anchor time, these come out as follows: open Harbor 7 / Maple 7 / Linden 6; overdue high 2 (KW-1014, KW-1017), normal 1 (KW-1010), low 1 (KW-1006); workload Grace 14, Theo 6; on time 25 met / 1 at risk / 4 breached (87%).

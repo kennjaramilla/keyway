@@ -114,7 +114,7 @@ As a coordinator, I move a request through its workflow from the detail page.
 ## 5. Dashboard (manager)
 
 **5.1 Portfolio dashboard. P0**
-- Given I'm Helena, when I open `/dashboard`, then I see 4 KPI tiles (Open requests, Avg time to resolve (30d), Overdue, Resolved (30d)) and 4 panels: Open by building, Avg time to resolve by building, Overdue by urgency, and Coordinator workload.
+- Given I'm Helena, when I open `/dashboard`, then I see 4 KPI tiles (Open requests, Resolved this week, On-time rate, Overdue) with week-on-week trends, a 7-day volume chart, on-time performance, building health, vendor status, and 4 panels: Open by building, Avg time to resolve by building, Overdue by urgency, and Coordinator workload.
 - Each chart has a visible "Show table" toggle that renders the same data as a `<table>` with a caption and headers. Charts have a text summary (`aria-label` / `<figcaption>`), and series are distinguished by pattern or label as well as colour.
 - With seed data: Open is Harbor 7, Maple 7, Linden 6. Overdue is high 2, normal 1, low 1. Workload is Grace 14, Theo 6.
 - Clicking a building bar or table row opens the requests list for that building (P1).
