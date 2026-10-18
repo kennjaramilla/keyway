@@ -1,6 +1,5 @@
 "use client";
 
-import { Building2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, type ReactNode } from "react";
@@ -8,13 +7,15 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CurrentSessionContext, toCurrentSession, useSession } from "@/features/session/hooks";
 import { ApiError } from "@/lib/api-client";
+import { ROLE_LABELS } from "@/lib/auth/demo-users";
 import { SIGN_IN_PATH } from "@/lib/auth/routes";
+import { BrandMark } from "./BrandMark";
 import { BuildingSwitcher } from "./BuildingSwitcher";
 import { SideNav } from "./SideNav";
 import { useFocusOnNavigate } from "./route-focus";
 import { UserMenu } from "./UserMenu";
 
-/** Authenticated layout: skip link, header (building + user menu), nav and main. */
+/** Authenticated layout: skip link, sidebar nav (bottom tabs on phones), header and main. */
 export function WorkspaceShell({ children }: { children: ReactNode }) {
   const session = useSession();
   const router = useRouter();
@@ -52,35 +53,43 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
 
   return (
     <CurrentSessionContext value={current}>
-      <div className="flex min-h-screen flex-col">
+      <div className="min-h-screen md:flex">
         <a
           href="#main"
           className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-fg focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
         >
           Skip to main content
         </a>
-        <header className="sticky top-0 z-30 border-b border-border bg-surface">
-          <div className="flex h-14 min-w-0 items-center gap-3 px-4">
-            <Link
-              href="/"
-              className="flex shrink-0 items-center gap-2 rounded-sm font-semibold text-fg"
-            >
-              <Building2 aria-hidden className="size-5 text-primary" />
-              Keyway
-            </Link>
-            <span aria-hidden className="h-6 w-px bg-border" />
-            <BuildingSwitcher />
-            <div className="ml-auto shrink-0">
-              <UserMenu />
-            </div>
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col md:flex-row">
+        {/* Sidebar on desktop; on phones only its nav shows, as a bottom tab bar. */}
+        <div className="contents md:sticky md:top-0 md:flex md:h-screen md:w-60 md:shrink-0 md:flex-col md:bg-sidebar">
+          <Link
+            href="/"
+            className="mx-3 mt-4 mb-6 hidden rounded-md p-2 focus-visible:outline-sidebar-fg md:block"
+          >
+            <BrandMark onDark subtitle={`${ROLE_LABELS[current.user.role]} portal`} />
+          </Link>
           <SideNav />
+          <p className="mt-auto hidden px-5 pb-5 text-xs text-sidebar-muted md:block">
+            Demo data. Fictional people and buildings.
+          </p>
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
+            <div className="flex h-16 min-w-0 items-center gap-3 px-4 sm:px-6 lg:px-8">
+              <Link href="/" className="shrink-0 rounded-md md:hidden" aria-label="Keyway home">
+                <BrandMark />
+              </Link>
+              <span aria-hidden className="h-6 w-px bg-border md:hidden" />
+              <BuildingSwitcher />
+              <div className="ml-auto shrink-0">
+                <UserMenu />
+              </div>
+            </div>
+          </header>
           <main
             id="main"
             tabIndex={-1}
-            className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8"
+            className="min-w-0 flex-1 px-4 pt-6 pb-28 outline-none sm:px-6 md:pb-10 lg:px-8"
           >
             {children}
           </main>
