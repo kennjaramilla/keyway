@@ -39,6 +39,6 @@ describe("requests list", () => {
     cy.signInAs("coordinator", "usr_coord_theo");
     cy.visitFresh("/requests?reset");
     cy.location("search").should("eq", "");
-    cy.findByRole("table").findAllByRole("row").should("have.length", 10);
+    cy.findByRole("table").findAllByRole("row").should("have.length", 7); // header + 6 open
   });
 });
