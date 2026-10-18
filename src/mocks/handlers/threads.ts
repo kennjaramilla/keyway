@@ -3,9 +3,9 @@ import {
   messageCreateSchema,
   type Message,
   type Participant,
-  type Thread,
   type ThreadSummary,
 } from "@/features/messages/schema";
+import { unreadCount } from "@/features/messages/unread";
 import type { MaintenanceRequest } from "@/features/requests/schema";
 import type { SessionUser } from "@/features/session/schema";
 import { can } from "@/lib/auth/permissions";
@@ -17,17 +17,6 @@ import { API, deny, notFound, problem, sessionUser, unauthorized, validationErro
 function participant(db: Db, id: string): Participant {
   const user = db.users.find((candidate) => candidate.id === id);
   return { id, name: user?.name ?? "Former user", role: user?.role ?? "resident" };
-}
-
-/** Messages by others since the user last opened the thread. */
-export function unreadCount(thread: Thread, messages: Message[], userId: string) {
-  const lastRead = thread.lastReadAt[userId] ?? null;
-  return messages.filter(
-    (message) =>
-      message.threadId === thread.id &&
-      message.authorId !== userId &&
-      (lastRead === null || message.createdAt > lastRead),
-  ).length;
 }
 
 /** The thread's resource for can(): its building and resident. */
