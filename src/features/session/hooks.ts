@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, use } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
-import { homePathFor, SIGN_IN_PATH } from "@/lib/auth/routes";
+import { homePathFor, safeNextPath, SIGN_IN_PATH } from "@/lib/auth/routes";
 import {
   fetchDemoPeople,
   fetchSession,
@@ -56,7 +56,7 @@ export function useSignIn() {
       queryClient.setQueryData(sessionKeys.current, session);
       const next = new URLSearchParams(window.location.search).get("next");
       router.replace(
-        next?.startsWith("/") && !next.startsWith("//") ? next : homePathFor(session.user.role),
+        safeNextPath(next, window.location.origin) ?? homePathFor(session.user.role),
       );
     },
   });

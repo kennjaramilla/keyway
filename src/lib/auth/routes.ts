@@ -29,3 +29,14 @@ export const FORBIDDEN_PATH = "/forbidden";
 export function homePathFor(role: string) {
   return role === "manager" ? "/dashboard" : "/requests";
 }
+
+/** The same-origin path from a ?next value, or null if it would leave the site. */
+export function safeNextPath(next: string | null, origin: string): string | null {
+  if (!next) return null;
+  try {
+    const url = new URL(next, origin);
+    return url.origin === origin ? url.pathname + url.search + url.hash : null;
+  } catch {
+    return null;
+  }
+}
