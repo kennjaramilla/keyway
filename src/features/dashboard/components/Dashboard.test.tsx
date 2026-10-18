@@ -28,6 +28,27 @@ describe("Dashboard", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows week-on-week trends, on-time performance, buildings and vendors", async () => {
+    renderInWorkspace(<Dashboard />, { as: "manager" });
+    await screen.findByText("Open requests");
+
+    expect(screen.getByText("On-time rate").nextSibling).toHaveTextContent(/^\d+%$/);
+    expect(screen.getByText("Resolved this week").nextSibling).toHaveTextContent(/^\d+$/);
+    expect(within(panel("On-time performance")).getByText("Breached")).toBeInTheDocument();
+    expect(within(panel("Request volume, last 7 days")).getByText("Opened")).toBeInTheDocument();
+    expect(within(panel("Buildings")).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(panel("Vendor status")).getAllByText("On site").length).toBeGreaterThan(0);
+  });
+
+  it("shows the 7-day volume as a table", async () => {
+    const { user } = renderInWorkspace(<Dashboard />, { as: "manager" });
+    await screen.findByText("Open requests");
+    const volume = panel("Request volume, last 7 days");
+    await user.click(within(volume).getByRole("button", { name: "Show table" }));
+    const table = within(volume).getByRole("table", { name: "Request volume, last 7 days" });
+    expect(within(table).getAllByRole("row")).toHaveLength(8);
+  });
+
   it("switches a chart to an accessible table and back", async () => {
     const { user } = renderInWorkspace(<Dashboard />, { as: "manager" });
     await screen.findByText("Open requests");
@@ -57,6 +78,11 @@ describe("Dashboard", () => {
           resolveTimeByBuilding: [],
           overdueByUrgency: [],
           workload: [],
+          weekly: { opened: 0, openedPrev: 0, resolved: 0, resolvedPrev: 0 },
+          daily: [],
+          onTime: { met: 0, atRisk: 0, breached: 0 },
+          buildingHealth: [],
+          vendors: [],
         }),
       ),
     );
