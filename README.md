@@ -10,6 +10,12 @@ A maintenance portal demo for a property-management company with three apartment
 - A design-token component library (Radix + Tailwind) documented in Storybook with accessibility checks
 - A testing setup built from scratch: Vitest + Testing Library, MSW, Cypress + axe, and CI
 
+## Start here
+
+- [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md): how I'd make a fast, AI-built front end production-ready, with pointers into this repo
+- [docs/code-tour.md](docs/code-tour.md): a 15-minute reading order and the trade-offs behind it
+- [docs/application-flow.md](docs/application-flow.md): roles, data flow, the request state machine and the assistant
+
 ## Run it
 
 Requires Node 22 and npm.
@@ -28,6 +34,7 @@ npm run check          # lint, typecheck, unit tests, production build
 npm run test:coverage  # unit tests with coverage
 npm run build && npm run e2e   # Cypress against the production build (port 3100)
 npm run storybook      # component library on :6006
+npm run format         # Prettier
 ```
 
 See [TESTING.md](TESTING.md) for the strategy and conventions.
