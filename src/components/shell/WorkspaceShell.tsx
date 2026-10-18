@@ -59,7 +59,10 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
         </a>
         <header className="sticky top-0 z-30 border-b border-border bg-surface">
           <div className="flex h-14 min-w-0 items-center gap-3 px-4">
-            <Link href="/" className="flex shrink-0 items-center gap-2 rounded-sm font-semibold text-fg">
+            <Link
+              href="/"
+              className="flex shrink-0 items-center gap-2 rounded-sm font-semibold text-fg"
+            >
               <Building2 aria-hidden className="size-5 text-primary" />
               Keyway
             </Link>

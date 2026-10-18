@@ -46,6 +46,13 @@ describe("WorkspaceShell", () => {
     expect(document.title).toBe("Requests · Maple Court · Keyway");
   });
 
+  it("labels a portfolio page with all buildings", async () => {
+    renderInWorkspace(<PageHeader title="Dashboard" scope="portfolio" />, { as: "manager" });
+    expect(await screen.findByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
+    expect(screen.getByText("All buildings")).toBeInTheDocument();
+    expect(document.title).toBe("Dashboard · All buildings · Keyway");
+  });
+
   it("shows a resident their building and unit as static text", async () => {
     renderInWorkspace(<Page />);
     await screen.findByRole("heading", { level: 1 });

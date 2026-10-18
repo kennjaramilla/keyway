@@ -8,6 +8,7 @@ export default function DashboardPage() {
     <>
       <PageHeader
         title="Dashboard"
+        scope="portfolio"
         description="Open work, speed and overdue requests across every building."
       />
       <Dashboard />
