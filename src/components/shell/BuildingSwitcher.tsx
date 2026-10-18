@@ -1,6 +1,7 @@
 "use client";
 
 import { Building, ChevronsUpDown } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +14,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCurrentSession, useSwitchBuilding } from "@/features/session/hooks";
 import { roleCan } from "@/lib/auth/permissions";
+import { isPortfolioPath, pathAfterBuildingSwitch } from "@/lib/auth/routes";
 
-/** Active building: a menu for coordinators/managers with >1 building, static text otherwise. */
+/**
+ * Active building: a menu for coordinators/managers with >1 building, static text otherwise.
+ * Portfolio pages (the dashboard) cover every building, so they show "All buildings".
+ */
 export function BuildingSwitcher() {
   const { user, buildings, activeBuilding, unit } = useCurrentSession();
   const switchBuilding = useSwitchBuilding();
+  const pathname = usePathname();
+  const router = useRouter();
   const [announcement, setAnnouncement] = useState("");
   const canSwitch = roleCan(user.role, "building:switch") && buildings.length > 1;
+
+  if (isPortfolioPath(pathname)) {
+    return (
+      <p className="flex min-w-0 items-center gap-2 text-sm text-fg">
+        <Building aria-hidden className="size-4 shrink-0 text-fg-muted" />
+        <span className="truncate font-medium">All buildings</span>
+      </p>
+    );
+  }
 
   const label = (
     <>
@@ -52,7 +68,11 @@ export function BuildingSwitcher() {
                 const target = buildings.find((building) => building.id === buildingId);
                 if (!target || buildingId === activeBuilding.id) return;
                 switchBuilding.mutate(buildingId, {
-                  onSuccess: () => setAnnouncement(`Switched to ${target.name}`),
+                  onSuccess: () => {
+                    setAnnouncement(`Switched to ${target.name}`);
+                    const next = pathAfterBuildingSwitch(pathname);
+                    if (next) router.push(next);
+                  },
                 });
               }}
             >

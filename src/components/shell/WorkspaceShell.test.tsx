@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import { readSessionCookie } from "@/lib/auth/session-cookie";
 import { getDb, updateDb } from "@/mocks/db";
 import { server } from "@/mocks/node";
-import { mockRouter } from "@/test/next-navigation";
+import { mockRouter, navigationState } from "@/test/next-navigation";
 import { renderInWorkspace, renderWithProviders, screen, within } from "@/test/render";
 import { useWorkspaceStore } from "@/stores/workspace-store";
 import { PageHeader } from "./PageHeader";
@@ -85,6 +85,22 @@ describe("WorkspaceShell", () => {
     expect(await screen.findByText("Switched to Maple Court")).toBeInTheDocument();
     expect(readSessionCookie()?.activeBuildingId).toBe("bld_maple");
     expect(document.title).toBe("Requests · Maple Court · Keyway");
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
+  it("leaves a request page for the new building's queue after switching", async () => {
+    navigationState.pathname = "/requests/req_030";
+    const { user } = renderInWorkspace(<Page />, { as: "coordinator" });
+    await user.click(await screen.findByRole("button", { name: /Switch building/ }));
+    await user.click(screen.getByRole("menuitemradio", { name: /Maple Court/ }));
+    await vi.waitFor(() => expect(mockRouter.push).toHaveBeenCalledWith("/requests"));
+  });
+
+  it("shows all buildings instead of the switcher on the dashboard", async () => {
+    navigationState.pathname = "/dashboard";
+    renderInWorkspace(<Page />, { as: "manager" });
+    expect(await screen.findByText("All buildings")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Switch building/ })).not.toBeInTheDocument();
   });
 
   it("signs out", async () => {
