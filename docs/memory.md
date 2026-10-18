@@ -6,7 +6,7 @@ Status and hand-off notes. Update this file at the end of each work session.
 
 **Foundation done:**
 
-- Scaffold, strict TS, ESLint + Prettier, and CI (quality → unit + e2e + storybook, plus CodeQL, Dependabot and disabled Sonar/Black Duck jobs).
+- Scaffold, strict TS, ESLint + Prettier, and CI (quality → unit + e2e + storybook, plus CodeQL and disabled Sonar/Black Duck jobs). Dependabot is intentionally off so every commit is authored by a person; dependency updates are done manually through PRs.
 - Design tokens (light/dark) and the component library in `src/components/ui` with stories and tests.
 - Demo sign-in (seeded people grouped by role), session cookie, `proxy.ts` gating, `permissions.ts`, and the workspace shell (nav, building switcher, user menu with theme, reset and sign out, plus a no-access page).
 - MSW mock API: session, buildings, demo reset, and requests list/detail with isolation. The full spec seed is loaded and re-timed to now.
