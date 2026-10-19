@@ -32,6 +32,17 @@ export class ApiError extends Error {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api";
 
+let recoverPassthrough: (() => Promise<boolean>) | null = null;
+
+/** Lets the mock API re-attach when a request slipped past it (see MockApiProvider). */
+export function setPassthroughRecovery(recover: typeof recoverPassthrough) {
+  recoverPassthrough = recover;
+}
+
+/** A non-JSON 404 came from the web server, not the API (e.g. a restarted mock worker). */
+const isPassthrough = (response: Response) =>
+  response.status === 404 && !response.headers.get("content-type")?.includes("json");
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: unknown;
@@ -64,15 +75,19 @@ async function apiRequest<S extends z.ZodType>(
   schema: S,
   { method = "GET", body, query, signal }: RequestOptions = {},
 ): Promise<z.infer<S>> {
-  let response: Response;
-  try {
-    response = await fetch(buildUrl(path, query), {
+  const send = () =>
+    fetch(buildUrl(path, query), {
       method,
       signal,
       credentials: "same-origin",
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
+
+  let response: Response;
+  try {
+    response = await send();
+    if (isPassthrough(response) && (await recoverPassthrough?.())) response = await send();
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError({
