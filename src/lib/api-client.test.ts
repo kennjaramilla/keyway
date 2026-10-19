@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { z } from "zod";
 import { server } from "@/mocks/node";
-import { ApiError, api, buildUrl } from "./api-client";
+import { ApiError, api, buildUrl, setPassthroughRecovery } from "./api-client";
 
 const itemSchema = z.object({ id: z.string(), name: z.string() });
 
@@ -83,6 +83,38 @@ describe("api client", () => {
     await expect(api.get("/items/1", itemSchema)).rejects.toMatchObject({
       status: 0,
       problem: { title: "Network error" },
+    });
+  });
+
+  describe("when a request slips past the API", () => {
+    afterEach(() => setPassthroughRecovery(null));
+
+    it("recovers and retries once on a non-JSON 404", async () => {
+      let calls = 0;
+      server.use(
+        http.get("*/api/items/1", () =>
+          ++calls === 1
+            ? new HttpResponse("<html>", { status: 404, headers: { "Content-Type": "text/html" } })
+            : HttpResponse.json({ id: "1", name: "Sink" }),
+        ),
+      );
+      const recover = vi.fn().mockResolvedValue(true);
+      setPassthroughRecovery(recover);
+      await expect(api.get("/items/1", itemSchema)).resolves.toEqual({ id: "1", name: "Sink" });
+      expect(recover).toHaveBeenCalledOnce();
+      expect(calls).toBe(2);
+    });
+
+    it("does not retry a 404 from the API itself", async () => {
+      server.use(
+        http.get("*/api/items/9", () =>
+          HttpResponse.json({ title: "Not found", status: 404 }, { status: 404 }),
+        ),
+      );
+      const recover = vi.fn().mockResolvedValue(true);
+      setPassthroughRecovery(recover);
+      await expect(api.get("/items/9", itemSchema)).rejects.toMatchObject({ status: 404 });
+      expect(recover).not.toHaveBeenCalled();
     });
   });
 });
