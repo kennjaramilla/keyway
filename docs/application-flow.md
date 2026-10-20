@@ -39,15 +39,17 @@ flowchart LR
 stateDiagram-v2
   [*] --> New: resident submits
   New --> Triaged: triage (coordinator)
+  New --> Cancelled: cancel (resident, optional reason)
   Triaged --> Triaged: assign vendor
   Triaged --> Scheduled: schedule visit (vendor required)
   Scheduled --> Scheduled: reschedule / change vendor
   Scheduled --> InProgress: start
   InProgress --> Resolved: resolve (note required)
-  Resolved --> InProgress: reopen (not built yet)
+  Resolved --> InProgress: reopen within 7 days (reason required)
+  Cancelled --> [*]
 ```
 
-The table lives in `TRANSITIONS` in `src/features/requests/schema.ts`. `nextStatus()` decides what's allowed; the detail page only offers the next valid steps, and the API returns 409 for anything else. Each step appends a timeline event with the previous and new status. Visit windows are validated in the building's time zone (1 to 4 hours, 8:00 to 20:00 unless it's an emergency) by the same function in the form and the API.
+The table lives in `TRANSITIONS` in `src/features/requests/schema.ts`. Resolved and Cancelled are closed (`isOpenStatus()`), so they leave open counts, overdue and the staff queue's default view. `nextStatus()` decides what's allowed, and `canStillReopen()` adds the 7-day window (409 `REOPEN_WINDOW_CLOSED` after it); the detail page only offers the next valid steps, and the API returns 409 for anything else. Each step appends a timeline event with the previous and new status. Visit windows are validated in the building's time zone (1 to 4 hours, 8:00 to 20:00 unless it's an emergency) by the same function in the form and the API.
 
 ## House-rules assistant
 

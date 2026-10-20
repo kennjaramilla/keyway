@@ -7,6 +7,8 @@ A maintenance portal demo for a property-management company with three apartment
 ## What it shows
 
 - Multi-tenant roles with tenant isolation enforced at the API, not only hidden in the UI
+- A request workflow driven by one status table: triage to resolved, plus cancel and reopen within 7 days
+- A house-rules assistant that cites its sources, links into the full rules document, and is rate limited
 - A design-token component library (Radix + Tailwind) documented in Storybook with accessibility checks
 - A testing setup built from scratch: Vitest + Testing Library, MSW, Cypress + axe, and CI
 

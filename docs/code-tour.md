@@ -24,11 +24,12 @@ Then skim the test setup: `src/test/render.tsx` (`renderInWorkspace`), `cypress/
 - **MSW ships in the production bundle.** That's what makes the hosted demo work without a backend, at the cost of bundle size and a short wait before first render (the worker must start before any request). With a backend it would be dropped from production builds (`NEXT_PUBLIC_API_MOCKING=off` already skips starting it).
 - **Cache-key rules.** Every building-scoped query key includes the `buildingId`, and a building switch invalidates everything except the session. That costs some refetching, and buys a guarantee that one building's data never appears under another's header.
 - **Deep links switch building once.** Opening a request from another covered building switches to it so the header never lies; switching away afterwards leaves the record page for the new building's list instead of fighting the user.
-- **`WorkflowActions.tsx` is long.** It holds four small dialogs that share one `ActionDialog` and one mutation. Splitting it into a file per dialog is easy when a fifth action (cancel, reopen) lands; doing it earlier would mostly add indirection.
+- **One file per workflow dialog, but only once it paid off.** `WorkflowActions.tsx` decides which steps `TRANSITIONS` and `can()` allow; the dialogs live in `components/workflow/` around one shared `ActionDialog`. They started in one file and were split when cancel and reopen made it six; splitting at four would mostly have added indirection.
+- **The assistant's rate limit is in memory.** 10 questions per person per minute (`src/lib/rate-limit.ts`) stops a runaway client, but each server instance counts on its own. A shared store (Redis) is the production version.
 
 ## Next steps
 
-- Build the cut stories: resident cancel (2.8), manager vendor reassignment UI and test (2.9), reopen (2.10), dashboard date range (5.2), queue as cards on mobile (6.4).
-- A full Content-Security-Policy with nonces, a signed server session, and rate limiting on `/api/assistant`.
+- Build the cut stories: manager vendor reassignment UI and test (2.9), manager reassigns a building's coordinator (1.5), dashboard date range (5.2).
+- A full Content-Security-Policy with nonces, a signed server session, and a shared store for the assistant's rate limit.
 - Code-split MSW out of the production bundle once a real API exists; add bundle and Web Vitals budgets.
-- Error tracking and Web Vitals reporting (see `PRODUCTION-READINESS.md`, phase 6).
+- Plug error tracking into `reportError` (the route error boundaries already call it) and report Web Vitals (see `PRODUCTION-READINESS.md`, phase 6).

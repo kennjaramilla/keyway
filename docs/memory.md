@@ -2,6 +2,18 @@
 
 Status and hand-off notes. Update this file at the end of each work session.
 
+## Status (2026-10-21, after the improvements round)
+
+**Improvements round (done, PRs #32 to #39):**
+
+- Mock API: a non-JSON 404 means a request slipped past a restarted service worker; the API client re-attaches the tab (`MOCK_ACTIVATE`) and retries once (#32).
+- Requests: residents cancel a New request (#33, new `cancelled` status, `isOpenStatus`/`OPEN_STATUSES`); residents and coordinators reopen within 7 days with a reason (#35, `canStillReopen`, 409 `REOPEN_WINDOW_CLOSED`). The API client keeps the problem `code`, so only `INVALID_TRANSITION` says "It changed since you opened it".
+- Errors: route error boundaries (`(workspace)/error.tsx` keeps the shell, `error.tsx`, `global-error.tsx`) all report through `src/lib/report-error.ts` (#34). Next 16 passes `retry`, not `reset`.
+- Nav: unread message count on the Messages link, named from its visible content (#36; axe rejects an aria-label that doesn't contain the badge text).
+- House rules: `GET /api/rules` and a filterable "Full house rules" card; cited sources link to their section (#37). The assistant is rate limited to 10 questions per person per minute, 429 with `Retry-After` (#38).
+- Refactor: workflow dialogs split into `components/workflow/` (#39).
+- Repo: `main` is protected by the "protect main" ruleset (PR required, CI checks required). PR titles and merge subjects are sentence case; commit messages stay lowercase.
+
 ## Status (2026-10-19, after QA round 1)
 
 **Foundation done:**
@@ -34,9 +46,8 @@ Status and hand-off notes. Update this file at the end of each work session.
 
 **Next:**
 
-- Cut P1/P2 stories: resident cancel (2.8), manager vendor reassignment UI and its test (2.9, `can()` already allows it), reopen (2.10), dashboard date range (5.2), queue as stacked cards below `md` (6.4; for now the table scrolls inside its card with a minimum title width).
-- Also open: unread badge in the nav, browsing the rules document (4.4).
-- Hardening: a full Content-Security-Policy with nonces (needs the inline theme script and MSW worker handled), a signed server session, rate limiting on `/api/assistant`, code-splitting MSW out of the production bundle, bundle and Web Vitals budgets, error tracking.
+- Cut P1/P2 stories: manager vendor reassignment UI and its test (2.9, `can()` already allows it), manager reassigns a building's coordinator (1.5), dashboard date range (5.2). The queue already renders as cards below `md` (6.4).
+- Hardening: a full Content-Security-Policy with nonces (needs the inline theme script and MSW worker handled), a signed server session, a shared store for the assistant's rate limit, code-splitting MSW out of the production bundle, bundle and Web Vitals budgets, plugging error tracking into `reportError`.
 
 ## How to resume
 
@@ -47,6 +58,7 @@ Status and hand-off notes. Update this file at the end of each work session.
 
 ## Gotchas
 
+- Chrome stops idle service workers, and the restarted MSW worker forgets the tab. A "Not Found" (capital F) error means a request skipped the mock API and hit Next; `api-client` now re-attaches and retries once.
 - Port 3000 may already be taken on this machine by another local server, so e2e uses port 3100 (`npm run start:e2e`).
 - Next 16 with `cacheComponents`: keep request-time reads (cookies) out of server components. Workspace pages are client components fed by TanStack Query.
 - Don't add a default `title` to root metadata: it would override the per-page "Page · Building · Keyway" `<title>` that `PageHeader` renders.
