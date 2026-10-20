@@ -65,7 +65,11 @@ describe("coordinator workflow", () => {
     });
     cy.findByText("KW-1030 resolved").should("be.visible");
     cy.findByRole("list", { name: "Timeline" }).findAllByRole("listitem").should("have.length", 6);
-    cy.findByRole("group", { name: "Workflow actions" }).should("not.exist");
+    // Resolved: the only step left is reopening (within 7 days).
+    cy.findByRole("group", { name: "Workflow actions" })
+      .findAllByRole("button")
+      .should("have.length", 1)
+      .and("have.text", "Reopen");
     cy.checkPageA11y();
 
     cy.findByRole("link", { name: "All requests" }).click();

@@ -63,4 +63,23 @@ describe("requests list", () => {
     cy.location("search").should("eq", "");
     cy.findByRole("table").findAllByRole("row").should("have.length", 7); // header + 6 open
   });
+
+  it("lets a resident reopen a request resolved this week", () => {
+    cy.signInAs("resident", "usr_res_meilin");
+    cy.visitFresh("/requests/req_016");
+    cy.findByRole("button", { name: "Reopen" }).click();
+    cy.findByRole("dialog", { name: "Reopen KW-1016?" }).within(() => {
+      cy.findByRole("button", { name: "Reopen request" }).click();
+      cy.findByText(/Say what's still wrong/).should("be.visible");
+      cy.findByLabelText(/What's still wrong/).type("The light buzzes again at night.");
+      cy.findByRole("button", { name: "Reopen request" }).click();
+    });
+    cy.findByText("KW-1016 reopened").should("be.visible");
+    cy.findByRole("list", { name: "Timeline" })
+      .findAllByRole("listitem")
+      .last()
+      .should("contain.text", "Resolved → In progress")
+      .and("contain.text", "The light buzzes again at night.");
+    cy.checkPageA11y();
+  });
 });

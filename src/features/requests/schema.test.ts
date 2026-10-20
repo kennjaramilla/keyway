@@ -1,4 +1,5 @@
 import {
+  canStillReopen,
   isOpenStatus,
   isOverdue,
   makeRequestCreateSchema,
@@ -97,6 +98,19 @@ describe("status machine", () => {
     expect(nextStatus("new", "request:cancel")).toBe("cancelled");
     expect(nextStatus("triaged", "request:cancel")).toBeNull();
     expect(TRANSITIONS.cancelled).toEqual([]);
+  });
+
+  it("allows reopening for 7 days after resolving", () => {
+    const resolvedAt = "2026-10-12T12:00:00Z";
+    const at = (iso: string) => new Date(iso);
+    expect(canStillReopen({ status: "resolved", resolvedAt }, at("2026-10-19T12:00:00Z"))).toBe(
+      true,
+    );
+    expect(canStillReopen({ status: "resolved", resolvedAt }, at("2026-10-19T12:00:01Z"))).toBe(
+      false,
+    );
+    expect(canStillReopen({ status: "in_progress", resolvedAt: null })).toBe(false);
+    expect(nextStatus("resolved", "request:reopen")).toBe("in_progress");
   });
 
   it("counts resolved and cancelled requests as closed", () => {

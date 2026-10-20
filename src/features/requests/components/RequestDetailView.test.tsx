@@ -120,9 +120,25 @@ describe("RequestDetailView", () => {
     expect(screen.getByRole("button", { name: "Schedule visit" })).toBeDisabled();
   });
 
-  it("hides actions on resolved requests", async () => {
+  it("hides actions on requests resolved more than 7 days ago", async () => {
     await openDetail("req_001");
     expect(actions()).not.toBeInTheDocument();
+  });
+
+  it("lets the resident reopen a recently resolved request with a reason", async () => {
+    const { user } = await openDetail("req_016", "usr_res_meilin");
+    await user.click(screen.getByRole("button", { name: "Reopen" }));
+    const dialog = await screen.findByRole("dialog", { name: "Reopen KW-1016?" });
+    await user.click(within(dialog).getByRole("button", { name: "Reopen request" }));
+    expect(await within(dialog).findByText(/Say what's still wrong/)).toBeInTheDocument();
+
+    await user.type(within(dialog).getByLabelText(/What's still wrong/), "Buzzing is back.");
+    await user.click(within(dialog).getByRole("button", { name: "Reopen request" }));
+    expect(await screen.findByText("KW-1016 reopened")).toBeInTheDocument();
+    expect(screen.getByText("In progress", { selector: "span" })).toBeInTheDocument();
+    await waitFor(() => expect(timelineItems().at(-1)).toHaveTextContent("Resolved → In progress"));
+    expect(timelineItems().at(-1)).toHaveTextContent("Buzzing is back.");
+    expect(screen.queryByText("Resolved", { selector: "dt" })).not.toBeInTheDocument();
   });
 
   it("works KW-1030 from new to resolved", async () => {
@@ -170,7 +186,12 @@ describe("RequestDetailView", () => {
 
     await waitFor(() => expect(timelineItems()).toHaveLength(6));
     expect(screen.getByText("Replaced the relief valve.")).toBeInTheDocument();
-    expect(actions()).not.toBeInTheDocument();
+    // A just-resolved request can only be reopened.
+    expect(
+      within(actions()!)
+        .getAllByRole("button")
+        .map((button) => button.textContent),
+    ).toEqual(["Reopen"]);
   });
 
   it("patches only list fields into cached request lists", async () => {

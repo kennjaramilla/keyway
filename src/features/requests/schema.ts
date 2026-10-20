@@ -204,6 +204,17 @@ export function isOverdue(
   return isOpenStatus(request.status) && now > dueAt(request);
 }
 
+/** Days after resolving during which a request can still be reopened. */
+export const REOPEN_DAYS = 7;
+
+export function canStillReopen(
+  request: Pick<MaintenanceRequest, "status" | "resolvedAt">,
+  now: Date = new Date(),
+) {
+  if (request.status !== "resolved" || !request.resolvedAt) return false;
+  return now.getTime() - new Date(request.resolvedAt).getTime() <= REOPEN_DAYS * 86_400_000;
+}
+
 // Action inputs (forms + MSW validation). `today` is building-local YYYY-MM-DD.
 
 const createWindowSchema = z.object({
@@ -276,6 +287,14 @@ export const assignSchema = z.object({ vendorId: z.string().min(1, "Choose a ven
 
 export const cancelSchema = z.object({
   reason: z.string().trim().max(500, "Keep the reason under 500 characters.").optional(),
+});
+
+export const reopenSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(5, "Say what's still wrong (at least 5 characters).")
+    .max(500, "Keep the reason under 500 characters."),
 });
 
 export const resolveSchema = z.object({

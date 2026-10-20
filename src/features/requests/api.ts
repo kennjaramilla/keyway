@@ -44,7 +44,8 @@ export type WorkflowInput =
   | { action: "schedule"; body: VisitWindow }
   | { action: "start"; body?: undefined }
   | { action: "resolve"; body: { resolutionNote: string } }
-  | { action: "cancel"; body: { reason?: string } };
+  | { action: "cancel"; body: { reason?: string } }
+  | { action: "reopen"; body: { reason: string } };
 
 export const runWorkflowAction = (id: string, { action, body }: WorkflowInput) =>
   api.post(`/requests/${encodeURIComponent(id)}/${action}`, requestDetailSchema, body ?? {});

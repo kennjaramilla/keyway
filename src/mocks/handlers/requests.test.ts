@@ -197,6 +197,36 @@ describe("workflow actions", () => {
     expect(await status(post("/requests/req_030/cancel", { reason: "x".repeat(501) }))).toBe(422);
   });
 
+  it("reopens a request resolved in the last 7 days, with the reason on the timeline", async () => {
+    signInAs("usr_res_meilin");
+    const reopened = await post("/requests/req_016/reopen", { reason: "It flickers again." });
+    expect(reopened).toMatchObject({ status: "in_progress", resolvedAt: null });
+    expect(reopened.timeline.at(-1)).toMatchObject({
+      type: "reopened",
+      fromStatus: "resolved",
+      toStatus: "in_progress",
+      note: "It flickers again.",
+    });
+    expect(await status(post("/requests/req_016/reopen", { reason: "Once more" }))).toBe(409);
+  });
+
+  it("reopens only within 7 days, with a reason, for the resident or a coordinator", async () => {
+    signInAs("resident");
+    const late = await post("/requests/req_001/reopen", { reason: "Slow again." }).catch(
+      (caught: ApiError) => caught,
+    );
+    expect(late).toMatchObject({ status: 409, problem: { code: "REOPEN_WINDOW_CLOSED" } });
+    expect(await status(post("/requests/req_016/reopen", { reason: "Still broken" }))).toBe(404);
+    signInAs("usr_res_meilin");
+    expect(await status(post("/requests/req_016/reopen", { reason: "no" }))).toBe(422);
+    signInAs("manager");
+    expect(await status(post("/requests/req_016/reopen", { reason: "Still broken" }))).toBe(403);
+    signInAs("coordinator");
+    await expect(
+      post("/requests/req_016/reopen", { reason: "Vendor is coming back." }),
+    ).resolves.toMatchObject({ status: "in_progress" });
+  });
+
   it("requires a session", async () => {
     expect(await status(post("/requests/req_030/triage", {}))).toBe(401);
     expect(await status(post("/requests", validCreate()))).toBe(401);
