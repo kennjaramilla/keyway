@@ -1,4 +1,6 @@
 import { http, HttpResponse } from "msw";
+import { threadSummaryListSchema } from "@/features/messages/schema";
+import { api } from "@/lib/api-client";
 import { readSessionCookie } from "@/lib/auth/session-cookie";
 import { getDb, updateDb } from "@/mocks/db";
 import { server } from "@/mocks/node";
@@ -15,7 +17,7 @@ async function navLinks() {
   const nav = await screen.findByRole("navigation", { name: "Main" });
   return within(nav)
     .getAllByRole("link")
-    .map((link) => link.textContent);
+    .map((link) => link.textContent?.replace(/ \d+\+? unread$/, "")); // drop an unread badge
 }
 
 describe("WorkspaceShell", () => {
@@ -27,6 +29,21 @@ describe("WorkspaceShell", () => {
     renderInWorkspace(<Page />, { as: role });
     expect(await navLinks()).toEqual(expected);
   });
+
+  it.each(["resident", "coordinator"])(
+    "shows the %s's unread message count on the Messages link",
+    async (role) => {
+      const { signedInAs } = renderInWorkspace(<Page />, { as: role });
+      const threads = await api.get("/threads", threadSummaryListSchema, {
+        query: { buildingId: signedInAs.buildingIds[0] },
+      });
+      const unread = threads.reduce((sum, thread) => sum + thread.unreadCount, 0);
+      expect(unread).toBeGreaterThan(0);
+      expect(
+        await screen.findByRole("link", { name: new RegExp(`^Messages\\s*${unread}\\s*unread$`) }),
+      ).toBeInTheDocument();
+    },
+  );
 
   it("marks the current page and offers a skip link", async () => {
     renderInWorkspace(<Page />);
