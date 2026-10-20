@@ -1,7 +1,7 @@
 import { SESSION_COOKIE, encodeSession } from "@/lib/auth/demo-users";
 import { FALLBACK_ANSWER } from "@/features/house-rules/retrieval";
 import { assistantAnswerSchema } from "@/features/house-rules/schema";
-import { GET, POST } from "./route";
+import { ASK_LIMIT, askLimiter, GET, POST } from "./route";
 
 const create = vi.hoisted(() => vi.fn());
 vi.mock("@anthropic-ai/sdk", () => ({
@@ -34,6 +34,7 @@ const claudeReply = (text: string, stop_reason = "end_turn") =>
 
 const PETS = "How many dogs or cats can I keep?";
 
+beforeEach(() => askLimiter.reset());
 afterEach(() => vi.unstubAllEnvs());
 
 describe("GET /api/assistant", () => {
@@ -136,5 +137,22 @@ describe("POST /api/assistant", () => {
     const forged = cookie("manager", "usr_res_amara", "bld_harbor");
     expect((await ask({ buildingId: "bld_harbor", question: PETS }, forged)).status).toBe(401);
     expect((await ask({ buildingId: "bld_harbor", question: "hi" })).status).toBe(422);
+  });
+});
+
+describe("POST /api/assistant rate limit", () => {
+  it("answers 429 with Retry-After once a person asks too often, per person", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    for (let index = 0; index < ASK_LIMIT; index++) {
+      expect((await ask({ buildingId: "bld_harbor", question: PETS })).status).toBe(200);
+    }
+    const limited = await ask({ buildingId: "bld_harbor", question: PETS });
+    expect(limited.status).toBe(429);
+    expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
+    expect(await limited.json()).toMatchObject({
+      title: "Too many questions",
+      detail: expect.stringMatching(/^You're asking quickly\. Try again in \d+ seconds\.$/),
+    });
+    expect((await ask({ buildingId: "bld_maple", question: PETS }, GRACE_MAPLE)).status).toBe(200);
   });
 });

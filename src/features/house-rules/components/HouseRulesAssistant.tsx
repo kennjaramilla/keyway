@@ -12,6 +12,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentSession } from "@/features/session/hooks";
+import { ApiError } from "@/lib/api-client";
 import { useAskHouseRules, useAssistantMode } from "../hooks/useAssistant";
 import { rulesQuestionSchema } from "../schema";
 import { suggestionsFor } from "../suggestions";
@@ -115,6 +116,11 @@ export function HouseRulesAssistant() {
         {ask.isError && asked && (
           <ErrorState
             title="Couldn't get an answer"
+            description={
+              ask.error instanceof ApiError && ask.error.status === 429
+                ? ask.error.message
+                : undefined
+            }
             onRetry={() => ask.mutate({ buildingId: activeBuilding.id, question: asked })}
           />
         )}

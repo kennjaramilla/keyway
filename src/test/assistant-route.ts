@@ -1,5 +1,5 @@
 import { http } from "msw";
-import { GET, POST } from "@/app/api/assistant/route";
+import { askLimiter, GET, POST } from "@/app/api/assistant/route";
 import { server } from "@/mocks/node";
 
 /**
@@ -7,6 +7,7 @@ import { server } from "@/mocks/node";
  * it to the handler itself, forwarding the jsdom session cookie.
  */
 export function routeAssistantToHandler() {
+  askLimiter.reset();
   server.use(
     http.get("*/api/assistant", () => GET()),
     http.post("*/api/assistant", async ({ request }) =>

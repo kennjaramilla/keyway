@@ -11,6 +11,7 @@ import {
 import { userSchema } from "@/features/session/schema";
 import { SESSION_COOKIE, decodeSession } from "@/lib/auth/demo-users";
 import { authorize, type Subject } from "@/lib/auth/permissions";
+import { createRateLimiter } from "@/lib/rate-limit";
 import seed from "@/mocks/seed.json";
 
 /**
@@ -23,8 +24,16 @@ const users = z.array(userSchema).parse(seed.users);
 const passages = z.array(rulePassageSchema).parse(seed.rulePassages);
 const documents = z.array(ruleDocumentSchema).parse(seed.ruleDocuments);
 
-const problem = (status: number, title: string, extra?: Record<string, unknown>) =>
-  Response.json({ title, status, ...extra }, { status });
+const problem = (
+  status: number,
+  title: string,
+  extra?: Record<string, unknown>,
+  headers?: HeadersInit,
+) => Response.json({ title, status, ...extra }, { status, headers });
+
+/** Questions per person per minute: protects the Claude key from a runaway client. */
+export const ASK_LIMIT = 10;
+export const askLimiter = createRateLimiter({ limit: ASK_LIMIT, windowMs: 60_000 });
 
 function readCookie(header: string | null, name: string) {
   const entry = header?.split(/;\s*/).find((part) => part.startsWith(`${name}=`));
@@ -50,6 +59,15 @@ export async function GET() {
 export async function POST(request: Request) {
   const subject = subjectFrom(request);
   if (!subject) return problem(401, "Not signed in");
+  const allowed = askLimiter.take(subject.id);
+  if (!allowed.ok) {
+    return problem(
+      429,
+      "Too many questions",
+      { detail: `You're asking quickly. Try again in ${allowed.retryAfter} seconds.` },
+      { "Retry-After": String(allowed.retryAfter) },
+    );
+  }
 
   const parsed = rulesQuestionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {

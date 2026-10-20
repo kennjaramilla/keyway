@@ -122,6 +122,29 @@ describe("HouseRulesAssistant", () => {
     ).toBeInTheDocument();
   });
 
+  it("explains a rate limit instead of a generic error", async () => {
+    server.use(
+      http.post(
+        "*/api/assistant",
+        () =>
+          HttpResponse.json(
+            {
+              title: "Too many questions",
+              status: 429,
+              detail: "You're asking quickly. Try again in 42 seconds.",
+            },
+            { status: 429 },
+          ),
+        { once: true },
+      ),
+    );
+    const { user } = renderInWorkspace(<HouseRulesAssistant />, { as: "resident" });
+    await user.click(await screen.findByRole("button", { name: "What are the quiet hours?" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "You're asking quickly. Try again in 42 seconds.",
+    );
+  });
+
   it("shows the Claude badge when the server has a key", async () => {
     vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
     renderInWorkspace(<HouseRulesAssistant />, { as: "resident" });
