@@ -54,6 +54,7 @@ const DONE: Record<WorkflowInput["action"], string> = {
   schedule: "scheduled",
   start: "marked in progress",
   resolve: "resolved",
+  cancel: "cancelled",
 };
 
 /** Predicted state for an action, shown until the API answers. */
@@ -69,6 +70,8 @@ function optimistic(request: RequestDetail, input: WorkflowInput): RequestDetail
       return { ...request, status: "in_progress" };
     case "resolve":
       return { ...request, status: "resolved", resolvedAt: new Date().toISOString() };
+    case "cancel":
+      return { ...request, status: "cancelled" };
   }
 }
 

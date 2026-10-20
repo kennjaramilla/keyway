@@ -34,6 +34,16 @@ describe("dashboard metrics", () => {
     });
   });
 
+  it("leaves cancelled requests out of open and overdue counts", () => {
+    const requests = db.requests.map((request) =>
+      request.status === "new" ? { ...request, status: "cancelled" as const } : request,
+    );
+    const cancelledNew = db.requests.filter((request) => request.status === "new").length;
+    const without = computeDashboard(requests, db.buildings, coordinators, new Date(NOW));
+    expect(without.totals.open).toBe(dashboard.totals.open - cancelledNew);
+    expect(without.openByBuilding[0]?.byStatus).not.toHaveProperty("cancelled");
+  });
+
   it("averages resolve time over the last 30 days", () => {
     expect(dashboard.totals.resolved30d).toBe(10);
     expect(dashboard.totals.avgResolveHours30d).toBeGreaterThan(0);

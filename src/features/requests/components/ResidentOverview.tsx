@@ -14,6 +14,7 @@ import { useCurrentSession } from "@/features/session/hooks";
 import { can, roleCan } from "@/lib/auth/permissions";
 import { cn } from "@/lib/cn";
 import { useRequests } from "../hooks/useRequests";
+import { isOpenStatus } from "../schema";
 
 function Stat({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
   return (
@@ -70,9 +71,9 @@ export function ResidentOverview() {
   const { user, activeBuilding, unit } = useCurrentSession();
   const requests = useRequests();
   const list = requests.data ?? [];
-  const open = list.filter((request) => request.status !== "resolved").length;
+  const open = list.filter((request) => isOpenStatus(request.status)).length;
   const scheduled = list.filter((request) => request.status === "scheduled").length;
-  const resolved = list.length - open;
+  const resolved = list.filter((request) => request.status === "resolved").length;
   const firstName = user.name.split(" ")[0];
 
   return (

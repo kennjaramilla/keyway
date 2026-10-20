@@ -1,4 +1,11 @@
-import { CATEGORIES, STATUSES, URGENCIES, type RequestListItem, type Status } from "./schema";
+import {
+  CATEGORIES,
+  OPEN_STATUSES,
+  STATUSES,
+  URGENCIES,
+  type RequestListItem,
+  type Status,
+} from "./schema";
 
 // Queue filters and sorting, kept in the URL (?status=new,triaged&sort=urgency&dir=desc).
 
@@ -14,8 +21,6 @@ export type QueueState = {
   sort: SortKey;
   dir: SortDir;
 };
-
-const OPEN_STATUSES: Status[] = STATUSES.filter((status) => status !== "resolved");
 
 /** Staff default to open work; residents see everything they've reported. */
 export const defaultQueue = (role: string): QueueState => ({

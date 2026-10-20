@@ -12,7 +12,7 @@ import {
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { STATUS_LABELS, STATUSES, URGENCY_LABELS } from "@/features/requests/schema";
+import { OPEN_STATUSES, STATUS_LABELS, URGENCY_LABELS } from "@/features/requests/schema";
 import { cn } from "@/lib/cn";
 import { useDashboard } from "../hooks/useDashboard";
 import { formatChange, formatDuration, onTimeRate } from "../metrics";
@@ -22,7 +22,6 @@ import { DonutChart } from "./DonutChart";
 import { BuildingHealthList, VendorStatusList } from "./PortfolioLists";
 import { TrendChart } from "./TrendChart";
 
-const OPEN_STATUSES = STATUSES.filter((status) => status !== "resolved");
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
 type Trend = { text: string; direction: "up" | "down" | "flat"; good?: boolean };

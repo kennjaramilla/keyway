@@ -41,6 +41,7 @@ import {
 import {
   CATEGORIES,
   CATEGORY_LABELS,
+  isOpenStatus,
   isOverdue,
   STATUS_LABELS,
   STATUSES,
@@ -109,7 +110,8 @@ export function RequestList() {
   }
 
   const sortDirection = (key: SortKey) => (state.sort === key ? state.dir : undefined);
-  const showingOpenOnly = isUnfiltered(state, base) && !state.statuses.includes("resolved");
+  const showingOpenOnly =
+    isUnfiltered(state, base) && state.statuses.every((status) => isOpenStatus(status));
 
   return (
     <div className="grid gap-4">

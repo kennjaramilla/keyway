@@ -71,4 +71,24 @@ describe("resident submits a request", () => {
     cy.findByText("Choose at least one time window.").should("not.exist");
     cy.checkPageA11y();
   });
+
+  it("lets the resident cancel a new request", () => {
+    cy.signInAs("resident");
+    cy.visitFresh("/requests/req_030");
+    cy.findByRole("heading", { level: 1, name: "Water heater leaking onto the floor" });
+    cy.findByRole("button", { name: "Cancel request" }).click();
+    cy.findByRole("dialog", { name: "Cancel KW-1030?" }).should("be.visible");
+    cy.checkPageA11y();
+    cy.findByRole("dialog", { name: "Cancel KW-1030?" }).within(() => {
+      cy.findByLabelText("Reason (optional)").type("The leak stopped after I tightened the valve.");
+      cy.findByRole("button", { name: "Cancel request" }).click();
+    });
+    cy.findByText("KW-1030 cancelled").should("be.visible");
+    cy.findByRole("list", { name: "Timeline" })
+      .findAllByRole("listitem")
+      .should("have.length", 2)
+      .last()
+      .should("contain.text", "New → Cancelled");
+    cy.findByRole("group", { name: "Workflow actions" }).should("not.exist");
+  });
 });

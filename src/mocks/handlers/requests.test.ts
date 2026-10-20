@@ -174,6 +174,29 @@ describe("workflow actions", () => {
     expect(await status(post("/requests/req_030/archive", {}))).toBe(404);
   });
 
+  it("lets a resident cancel their own new request, with an optional reason", async () => {
+    signInAs("resident");
+    const cancelled = await post("/requests/req_030/cancel", { reason: "Fixed it myself." });
+    expect(cancelled.status).toBe("cancelled");
+    expect(cancelled.timeline.at(-1)).toMatchObject({
+      type: "cancelled",
+      fromStatus: "new",
+      toStatus: "cancelled",
+      note: "Fixed it myself.",
+    });
+    expect(await status(post("/requests/req_030/cancel", {}))).toBe(409);
+    expect(await status(post("/requests/req_001/cancel", {}))).toBe(409);
+  });
+
+  it("lets only the resident who reported it cancel a request", async () => {
+    signInAs("coordinator");
+    expect(await status(post("/requests/req_030/cancel", {}))).toBe(403);
+    signInAs("usr_res_diego");
+    expect(await status(post("/requests/req_030/cancel", {}))).toBe(404);
+    signInAs("resident");
+    expect(await status(post("/requests/req_030/cancel", { reason: "x".repeat(501) }))).toBe(422);
+  });
+
   it("requires a session", async () => {
     expect(await status(post("/requests/req_030/triage", {}))).toBe(401);
     expect(await status(post("/requests", validCreate()))).toBe(401);

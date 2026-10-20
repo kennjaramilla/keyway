@@ -56,7 +56,7 @@ As a coordinator or the manager, I switch the active building so that I only wor
 
 **2.4 Request detail with timeline. P0**
 - Given I can view a request, when I open it, then I see its details, the unit, preferred windows, permission to enter, entry notes, the vendor, the visit window, and a vertical timeline (oldest first) where each event shows its label, actor name and time.
-- Given I'm a resident, then entry notes and status are read-only, and no workflow buttons are shown.
+- Given I'm a resident, then entry notes and status are read-only, and the only workflow action is cancelling a New request (2.8).
 
 **2.5 Triage → assign → schedule → start → resolve. P0 🧪 E2E-3**
 As a coordinator, I move a request through its workflow from the detail page.
@@ -69,7 +69,7 @@ As a coordinator, I move a request through its workflow from the detail page.
 
 **2.6 Reschedule. P1** Given **Scheduled**, when I change the window, then the status stays the same and a `rescheduled` event is added.
 **2.7 Queue: urgency/category filters and text search. P1**
-**2.8 Resident cancels a New request. P1** The request leaves open counts and a `cancelled` event is added.
+**2.8 Resident cancels a New request. P1** After confirming (optional reason), the status becomes **Cancelled**, the request leaves open counts, and a `cancelled` event is added.
 **2.9 Manager reassigns vendor. P1**
 **2.10 Reopen within 7 days. P2** · **2.11 Real photo upload. P2** · **2.12 Vendor portal / SMS updates. P2**
 

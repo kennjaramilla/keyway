@@ -25,7 +25,7 @@ async function openDetail(id: string, as = "coordinator", buildingId?: string) {
 }
 
 describe("RequestDetailView", () => {
-  it("shows details and a read-only view for the resident", async () => {
+  it("shows details to the resident, with cancel as the only action", async () => {
     await openDetail("req_030", "resident");
     expect(screen.getByText(/KW-1030 · Unit 4B · Plumbing/)).toBeInTheDocument();
     expect(screen.getByText("Dog will be in the bedroom.")).toBeInTheDocument();
@@ -33,8 +33,35 @@ describe("RequestDetailView", () => {
     expect(timelineItems()).toHaveLength(1);
     expect(timelineItems()[0]).toHaveTextContent("Request submitted");
     expect(timelineItems()[0]).toHaveTextContent("Amara Okafor");
-    expect(actions()).not.toBeInTheDocument();
+    expect(
+      within(actions()!)
+        .getAllByRole("button")
+        .map((button) => button.textContent),
+    ).toEqual(["Cancel request"]);
     expect(await screen.findByRole("region", { name: "Messages" })).toBeInTheDocument();
+  });
+
+  it("lets the resident cancel a new request after confirming", async () => {
+    const { user } = await openDetail("req_030", "resident");
+    await user.click(screen.getByRole("button", { name: "Cancel request" }));
+    const dialog = await screen.findByRole("dialog", { name: "Cancel KW-1030?" });
+    await user.click(within(dialog).getByRole("button", { name: "Keep request" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(getDb().requests.find((r) => r.id === "req_030")?.status).toBe("new");
+
+    await user.click(screen.getByRole("button", { name: "Cancel request" }));
+    const confirm = await screen.findByRole("dialog", { name: "Cancel KW-1030?" });
+    await user.type(
+      within(confirm).getByLabelText("Reason (optional)"),
+      "Landlord's plumber came.",
+    );
+    await user.click(within(confirm).getByRole("button", { name: "Cancel request" }));
+    expect(await screen.findByText("KW-1030 cancelled")).toBeInTheDocument();
+    expect(screen.getByText("Cancelled", { selector: "span" })).toBeInTheDocument();
+    await waitFor(() => expect(timelineItems()).toHaveLength(2));
+    expect(timelineItems()[1]).toHaveTextContent("New → Cancelled");
+    expect(timelineItems()[1]).toHaveTextContent("Landlord's plumber came.");
+    expect(actions()).not.toBeInTheDocument();
   });
 
   it("nests the empty messages heading under the Messages card", async () => {

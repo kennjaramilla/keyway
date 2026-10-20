@@ -1,6 +1,7 @@
 import { http, HttpResponse } from "msw";
 import {
   assignSchema,
+  cancelSchema,
   makeRequestCreateSchema,
   makeScheduleSchema,
   nextStatus,
@@ -28,7 +29,7 @@ import {
 const newestFirst = (a: MaintenanceRequest, b: MaintenanceRequest) =>
   b.createdAt.localeCompare(a.createdAt);
 
-const WORKFLOW_ACTIONS = ["triage", "assign", "schedule", "start", "resolve"] as const;
+const WORKFLOW_ACTIONS = ["triage", "assign", "schedule", "start", "resolve", "cancel"] as const;
 type WorkflowAction = (typeof WORKFLOW_ACTIONS)[number];
 
 function toListItem(db: Db, request: MaintenanceRequest) {
@@ -155,7 +156,7 @@ export const requestHandlers = [
     return HttpResponse.json(toDetail(db, found));
   }),
 
-  // POST /api/requests/:id/{triage|assign|schedule|start|resolve}
+  // POST /api/requests/:id/{triage|assign|schedule|start|resolve|cancel}
   http.post(`${API}/requests/:id/:action`, async ({ params, request, cookies }) => {
     const user = sessionUser(cookies);
     if (!user) return unauthorized();
@@ -240,6 +241,19 @@ export const requestHandlers = [
             { type: "resolved", actorId: user.id, note: parsed.data.resolutionNote },
             next,
             { resolvedAt: new Date().toISOString() },
+          ),
+        );
+      }
+      case "cancel": {
+        const next = to("request:cancel");
+        if (!next) return invalidTransition(found, "cancelled");
+        const parsed = cancelSchema.safeParse(body ?? {});
+        if (!parsed.success) return validationError(parsed.error);
+        return HttpResponse.json(
+          record(
+            found,
+            { type: "cancelled", actorId: user.id, note: parsed.data.reason || null },
+            next,
           ),
         );
       }
