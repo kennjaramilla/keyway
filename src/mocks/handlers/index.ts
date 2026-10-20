@@ -1,5 +1,6 @@
 import { dashboardHandlers } from "./dashboard";
 import { requestHandlers } from "./requests";
+import { ruleHandlers } from "./rules";
 import { sessionHandlers } from "./session";
 import { threadHandlers } from "./threads";
 import { vendorHandlers } from "./vendors";
@@ -14,4 +15,5 @@ export const handlers = [
   ...threadHandlers,
   ...vendorHandlers,
   ...dashboardHandlers,
+  ...ruleHandlers,
 ];

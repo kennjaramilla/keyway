@@ -3,6 +3,7 @@ import { useCurrentSession } from "@/features/session/hooks";
 import type { AssistantAnswer } from "../schema";
 import { highlight } from "../retrieval";
 import { MessageCoordinatorButton } from "./MessageCoordinatorButton";
+import { passageAnchor } from "./RulesDocument";
 
 type Citation = AssistantAnswer["citations"][number];
 
@@ -73,6 +74,12 @@ export function AnswerView({ question, answer }: { question: string; answer: Ass
                   ),
                 )}
               </p>
+              <a
+                href={`#${passageAnchor(citation.passageId)}`}
+                className="mt-2 inline-block text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                Read §{citation.section} in the full rules
+              </a>
             </li>
           ))}
         </ol>

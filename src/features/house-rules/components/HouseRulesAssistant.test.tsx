@@ -45,6 +45,9 @@ describe("HouseRulesAssistant", () => {
         .every((el) => el.tagName === "MARK"),
     ).toBe(true);
     expect(region).toHaveTextContent("up to two dogs or cats");
+    expect(
+      within(source).getByRole("link", { name: "Read §3.1 in the full rules" }),
+    ).toHaveAttribute("href", "#rule-hvl-pets");
   });
 
   it("cites the active building's rules for the same question", async () => {

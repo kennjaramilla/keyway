@@ -19,6 +19,24 @@ export const rulePassageSchema = z.object({
 });
 export type RulePassage = z.infer<typeof rulePassageSchema>;
 
+/** GET /api/rules: a building's rules document with its passages in section order. */
+export const rulesSchema = z.object({
+  document: ruleDocumentSchema,
+  passages: z.array(rulePassageSchema),
+});
+export type Rules = z.infer<typeof rulesSchema>;
+
+/** Orders "2.1" before "10.1" (section numbers compared part by part). */
+export function compareSections(a: string, b: string) {
+  const left = a.split(".").map(Number);
+  const right = b.split(".").map(Number);
+  for (let index = 0; index < Math.max(left.length, right.length); index++) {
+    const difference = (left[index] ?? 0) - (right[index] ?? 0);
+    if (difference !== 0) return difference;
+  }
+  return 0;
+}
+
 export const rulesQuestionSchema = z.object({
   buildingId: z.string(),
   question: z
