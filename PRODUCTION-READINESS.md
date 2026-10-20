@@ -54,7 +54,7 @@ The same tools that produced the first version will keep writing code, so give t
 
 Tests catch what we thought of; production shows the rest. Next I'd add:
 
-- Error tracking (for example Sentry) wired into React error boundaries and the API client's `ApiError`, with release tags from CI
+- Error tracking (for example Sentry) behind `reportError` (`src/lib/report-error.ts`), which the route error boundaries (`src/app/(workspace)/error.tsx`, `error.tsx`, `global-error.tsx`) already call; then the API client's `ApiError` and release tags from CI
 - Web Vitals (LCP, INP, CLS) reported from `useReportWebVitals`, with alerts on regressions
 - Basic product analytics on the critical flows from phase 1, so we know they're used the way we think
 - A full Content-Security-Policy with nonces, once the mock worker is out of the production bundle
