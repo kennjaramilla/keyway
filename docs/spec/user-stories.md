@@ -108,7 +108,8 @@ As a coordinator, I move a request through its workflow from the detail page.
 - Questions shorter than 3 characters are rejected inline.
 
 **4.3 Claude mode. P1** Given `ANTHROPIC_API_KEY` is set, the badge reads "Answer mode: Claude". Any error falls back to retrieval, and the badge then says Retrieval.
-**4.4 Browse the rules document. P1** · **4.5 Multi-turn follow-ups. P2**
+**4.4 Browse the rules document. P1** Below the assistant, "Full house rules" shows the active building's document (title, effective date) with section links and every passage. "Find a rule" filters sections and highlights matches. Each cited source links to "Read §n in the full rules", which clears the filter and focuses that section.
+**4.5 Multi-turn follow-ups. P2**
 
 ---
 

@@ -65,4 +65,20 @@ describe("house rules assistant", () => {
     cy.findByLabelText("Your question").should("have.attr", "aria-invalid", "true");
     cy.checkPageA11y();
   });
+
+  it("browses the full rules and jumps from a citation to its section", () => {
+    cy.signInAs("resident");
+    cy.visitFresh("/house-rules");
+    cy.findByRole("heading", { name: "Full house rules" }).should("be.visible");
+    cy.findByRole("searchbox", { name: "Find a rule" }).type("bike");
+    cy.findByText("1 of 12 sections match").should("be.visible");
+    cy.findByRole("region", { name: "§5.1 Parking and bicycles" }).should("be.visible");
+    cy.checkPageA11y();
+
+    ask(PETS);
+    cy.findByRole("link", { name: "Read §3.1 in the full rules" }).click();
+    cy.findByRole("searchbox", { name: "Find a rule" }).should("have.value", "");
+    cy.findByRole("region", { name: "§3.1 Pets" }).should("have.focus");
+    cy.location("hash").should("eq", "#rule-hvl-pets");
+  });
 });
