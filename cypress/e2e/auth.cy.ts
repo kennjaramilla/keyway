@@ -30,9 +30,9 @@ describe("sign-in and route gating", () => {
         .findAllByRole("link")
         .then((links) =>
           // Ignore an unread badge after a label.
-          expect([...links].map((link) => link.textContent?.replace(/\d+\+?$/, ""))).to.deep.equal(
-            nav,
-          ),
+          expect(
+            [...links].map((link) => link.textContent?.replace(/ \d+\+? unread$/, "")),
+          ).to.deep.equal(nav),
         );
       cy.findByRole("button", { name: new RegExp(`^${name}`) }).should("be.visible");
       cy.checkPageA11y();

@@ -17,7 +17,7 @@ async function navLinks() {
   const nav = await screen.findByRole("navigation", { name: "Main" });
   return within(nav)
     .getAllByRole("link")
-    .map((link) => link.textContent?.replace(/\d+\+?$/, "")); // drop an unread badge
+    .map((link) => link.textContent?.replace(/ \d+\+? unread$/, "")); // drop an unread badge
 }
 
 describe("WorkspaceShell", () => {
@@ -40,7 +40,7 @@ describe("WorkspaceShell", () => {
       const unread = threads.reduce((sum, thread) => sum + thread.unreadCount, 0);
       expect(unread).toBeGreaterThan(0);
       expect(
-        await screen.findByRole("link", { name: `Messages, ${unread} unread` }),
+        await screen.findByRole("link", { name: new RegExp(`^Messages\\s*${unread}\\s*unread$`) }),
       ).toBeInTheDocument();
     },
   );

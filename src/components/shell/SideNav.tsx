@@ -38,7 +38,6 @@ export function SideNav() {
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                aria-label={badge > 0 ? `${item.label}, ${badge} unread` : undefined}
                 className={cn(
                   "relative flex flex-col items-center gap-1 px-2 py-2.5 text-xs font-medium text-fg-muted",
                   "md:flex-row md:gap-3 md:rounded-lg md:px-3 md:py-2.5 md:text-sm md:text-sidebar-muted md:hover:bg-white/5 md:hover:text-sidebar-fg md:focus-visible:outline-sidebar-fg",
@@ -48,12 +47,13 @@ export function SideNav() {
                 <Icon aria-hidden className="size-5 md:size-4" />
                 {item.label}
                 {badge > 0 && (
-                  <span
-                    aria-hidden
-                    className="absolute top-1 left-1/2 ml-1.5 min-w-5 rounded-full bg-primary px-1.5 text-center text-[11px] leading-5 font-semibold text-primary-fg md:static md:ml-auto md:bg-sidebar-fg md:text-sidebar"
-                  >
-                    {badge > 99 ? "99+" : badge}
-                  </span>
+                  <>
+                    {" "}
+                    <span className="absolute top-1 left-1/2 ml-1.5 min-w-5 rounded-full bg-primary px-1.5 text-center text-[11px] leading-5 font-semibold text-primary-fg md:static md:ml-auto md:bg-sidebar-fg md:text-sidebar">
+                      {badge > 99 ? "99+" : badge}
+                    </span>
+                    <span className="sr-only"> unread</span>
+                  </>
                 )}
               </Link>
             </li>
