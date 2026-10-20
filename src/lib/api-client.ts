@@ -6,6 +6,8 @@ const problemDetailsSchema = z.object({
   title: z.string(),
   status: z.number(),
   detail: z.string().optional(),
+  /** Machine-readable reason, e.g. INVALID_TRANSITION on a 409. */
+  code: z.string().optional(),
   errors: z.record(z.string(), z.array(z.string())).optional(),
 });
 export type ProblemDetails = z.infer<typeof problemDetailsSchema>;

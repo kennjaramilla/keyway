@@ -118,7 +118,7 @@ new ──triage──▶ triaged ──schedule──▶ scheduled ──start�
 | scheduled → in_progress | `request:start` | Coordinator | none | `started` |
 | in_progress → resolved | `request:resolve` | Coordinator | resolution note required | `resolved` (note); sets `resolvedAt` |
 | new → cancelled | `request:cancel` | Resident (own request) | optional reason; leaves open counts | `cancelled` (note) |
-| resolved → in_progress | `request:reopen` | Resident/Coordinator | P2; ≤7 days after resolvedAt | `reopened` |
+| resolved → in_progress | `request:reopen` | Resident (own unit) / Coordinator | reason required; ≤7 days after resolvedAt, else 409 `REOPEN_WINDOW_CLOSED`; clears resolvedAt | `reopened` (note) |
 
 Any other transition returns `409 Conflict` from the API, with `{ code: 'INVALID_TRANSITION' }`. The UI shows only the next valid action button(s). Export the machine as data (`TRANSITIONS: Record<Status, {action, to}[]>`) so the UI, handlers and tests share one table.
 

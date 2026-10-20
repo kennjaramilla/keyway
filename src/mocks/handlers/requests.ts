@@ -1,10 +1,12 @@
 import { http, HttpResponse } from "msw";
 import {
   assignSchema,
+  canStillReopen,
   cancelSchema,
   makeRequestCreateSchema,
   makeScheduleSchema,
   nextStatus,
+  reopenSchema,
   resolveSchema,
   triageSchema,
   type MaintenanceRequest,
@@ -29,7 +31,15 @@ import {
 const newestFirst = (a: MaintenanceRequest, b: MaintenanceRequest) =>
   b.createdAt.localeCompare(a.createdAt);
 
-const WORKFLOW_ACTIONS = ["triage", "assign", "schedule", "start", "resolve", "cancel"] as const;
+const WORKFLOW_ACTIONS = [
+  "triage",
+  "assign",
+  "schedule",
+  "start",
+  "resolve",
+  "cancel",
+  "reopen",
+] as const;
 type WorkflowAction = (typeof WORKFLOW_ACTIONS)[number];
 
 function toListItem(db: Db, request: MaintenanceRequest) {
@@ -156,7 +166,7 @@ export const requestHandlers = [
     return HttpResponse.json(toDetail(db, found));
   }),
 
-  // POST /api/requests/:id/{triage|assign|schedule|start|resolve|cancel}
+  // POST /api/requests/:id/{triage|assign|schedule|start|resolve|cancel|reopen}
   http.post(`${API}/requests/:id/:action`, async ({ params, request, cookies }) => {
     const user = sessionUser(cookies);
     if (!user) return unauthorized();
@@ -255,6 +265,23 @@ export const requestHandlers = [
             { type: "cancelled", actorId: user.id, note: parsed.data.reason || null },
             next,
           ),
+        );
+      }
+      case "reopen": {
+        const next = to("request:reopen");
+        if (!next) return invalidTransition(found, "reopened");
+        if (!canStillReopen(found)) {
+          return conflict(
+            "REOPEN_WINDOW_CLOSED",
+            "Requests can only be reopened within 7 days of being resolved.",
+          );
+        }
+        const parsed = reopenSchema.safeParse(body);
+        if (!parsed.success) return validationError(parsed.error);
+        return HttpResponse.json(
+          record(found, { type: "reopened", actorId: user.id, note: parsed.data.reason }, next, {
+            resolvedAt: null,
+          }),
         );
       }
     }

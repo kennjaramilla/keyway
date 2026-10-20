@@ -55,6 +55,7 @@ const DONE: Record<WorkflowInput["action"], string> = {
   start: "marked in progress",
   resolve: "resolved",
   cancel: "cancelled",
+  reopen: "reopened",
 };
 
 /** Predicted state for an action, shown until the API answers. */
@@ -72,6 +73,8 @@ function optimistic(request: RequestDetail, input: WorkflowInput): RequestDetail
       return { ...request, status: "resolved", resolvedAt: new Date().toISOString() };
     case "cancel":
       return { ...request, status: "cancelled" };
+    case "reopen":
+      return { ...request, status: "in_progress", resolvedAt: null };
   }
 }
 
@@ -117,9 +120,10 @@ export function useWorkflowAction(request: RequestDetail) {
       if (context?.previousDetail) queryClient.setQueryData(detailKey, context.previousDetail);
       for (const [key, data] of context?.previousLists ?? []) queryClient.setQueryData(key, data);
       const conflict = error instanceof ApiError && error.status === 409;
+      const stale = conflict && error.problem.code === "INVALID_TRANSITION";
       toast({
         title: `Couldn't update ${request.number}`,
-        description: conflict
+        description: stale
           ? "It changed since you opened it. We've refreshed it."
           : error.message || "Please try again.",
         tone: "danger",

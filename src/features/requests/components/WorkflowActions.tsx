@@ -23,7 +23,9 @@ import {
   CATEGORIES,
   CATEGORY_LABELS,
   cancelSchema,
+  canStillReopen,
   makeScheduleFormSchema,
+  reopenSchema,
   resolveSchema,
   TRANSITIONS,
   triageSchema,
@@ -44,7 +46,10 @@ export function WorkflowActions({ request }: { request: RequestDetail }) {
 
   const offered = TRANSITIONS[request.status]
     .map((transition) => transition.action)
-    .filter((action) => action !== "request:reopen" && can(user, action, request));
+    .filter(
+      (action) =>
+        (action !== "request:reopen" || canStillReopen(request)) && can(user, action, request),
+    );
   const canAssign =
     (request.status === "triaged" || request.status === "scheduled") &&
     can(user, "request:assign", request);
@@ -80,6 +85,7 @@ export function WorkflowActions({ request }: { request: RequestDetail }) {
       )}
       {offered.includes("request:resolve") && <ResolveDialog {...dialogProps} />}
       {offered.includes("request:cancel") && <CancelDialog {...dialogProps} />}
+      {offered.includes("request:reopen") && <ReopenDialog {...dialogProps} />}
     </div>
   );
 }
@@ -424,6 +430,40 @@ function CancelDialog({ request, run, disabled, onFinished }: DialogProps) {
           })}
         >
           <FormField label="Reason (optional)" error={formState.errors.reason?.message}>
+            {(control) => <Textarea {...control} {...register("reason")} rows={3} />}
+          </FormField>
+        </form>
+      )}
+    </ActionDialog>
+  );
+}
+
+function ReopenDialog({ request, run, disabled, onFinished }: DialogProps) {
+  const { register, handleSubmit, formState } = useForm({
+    resolver: zodResolver(reopenSchema),
+    defaultValues: { reason: "" },
+  });
+  return (
+    <ActionDialog
+      label="Reopen"
+      title={`Reopen ${request.number}?`}
+      description="It goes back to In progress with the same vendor."
+      variant="secondary"
+      disabled={disabled}
+      formId="reopen-form"
+      submitLabel="Reopen request"
+      onFinished={onFinished}
+    >
+      {(finish) => (
+        <form
+          id="reopen-form"
+          noValidate
+          onSubmit={handleSubmit((body) => {
+            finish();
+            run({ action: "reopen", body });
+          })}
+        >
+          <FormField label="What's still wrong?" required error={formState.errors.reason?.message}>
             {(control) => <Textarea {...control} {...register("reason")} rows={3} />}
           </FormField>
         </form>

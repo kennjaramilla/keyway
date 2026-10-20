@@ -71,7 +71,8 @@ As a coordinator, I move a request through its workflow from the detail page.
 **2.7 Queue: urgency/category filters and text search. P1**
 **2.8 Resident cancels a New request. P1** After confirming (optional reason), the status becomes **Cancelled**, the request leaves open counts, and a `cancelled` event is added.
 **2.9 Manager reassigns vendor. P1**
-**2.10 Reopen within 7 days. P2** · **2.11 Real photo upload. P2** · **2.12 Vendor portal / SMS updates. P2**
+**2.10 Reopen within 7 days. P2** Given a request resolved in the last 7 days, the resident or coordinator can reopen it with a reason: it goes back to **In progress** and a `reopened` event is added. After 7 days the button is gone and the API returns 409.
+**2.11 Real photo upload. P2** · **2.12 Vendor portal / SMS updates. P2**
 
 ---
 
