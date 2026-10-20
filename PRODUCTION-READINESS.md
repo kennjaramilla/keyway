@@ -38,6 +38,7 @@ Add unit and component tests where the risk is (permissions, state machines, val
 - Coverage thresholds: `vitest.config.mts` (lines 80, functions 80, branches 75 on `src/lib` and `src/features`)
 - CodeQL: `.github/workflows/codeql.yml`, `.github/codeql/codeql-config.yml`
 - Security headers: `next.config.ts`
+- A rate limit on the AI endpoint, so a runaway client can't run up the Claude bill: `src/lib/rate-limit.ts`, used by `src/app/api/assistant/route.ts` (in memory per instance; a shared store in production)
 - Strategy and conventions: `TESTING.md`
 - Next: a bundle-size and Lighthouse budget in CI (the MSW worker and its handlers are the biggest avoidable cost today)
 
