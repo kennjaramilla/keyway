@@ -9,7 +9,7 @@ import { act, renderInWorkspace, screen, waitFor, within } from "@/test/render";
 import { fetchRequests, requestKeys } from "../api";
 import type { RequestListItem } from "../schema";
 import { RequestDetailView } from "./RequestDetailView";
-import { sortVendors } from "./WorkflowActions";
+import { sortVendors } from "./workflow/AssignDialog";
 
 const actions = () => screen.queryByRole("group", { name: "Workflow actions" });
 const timelineItems = () =>
