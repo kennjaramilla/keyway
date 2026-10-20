@@ -17,7 +17,7 @@ import { roleCan } from "@/lib/auth/permissions";
 import { formatDateTime } from "@/lib/datetime";
 import { formatPreferredWindow, formatVisitWindow } from "../format";
 import { useRequest } from "../hooks/useRequest";
-import { CATEGORY_LABELS, dueAt, isOverdue, LOCATION_LABELS } from "../schema";
+import { CATEGORY_LABELS, dueAt, isOpenStatus, isOverdue, LOCATION_LABELS } from "../schema";
 import { RequestStatusBadge, UrgencyBadge } from "./RequestStatusBadge";
 import { RequestTimeline } from "./RequestTimeline";
 import { WorkflowActions } from "./WorkflowActions";
@@ -116,7 +116,7 @@ export function RequestDetailView({ id }: { id: string }) {
                 <Detail term="Location">{LOCATION_LABELS[item.location]}</Detail>
                 <Detail term="Submitted">{formatDateTime(item.createdAt, item.timeZone)}</Detail>
                 <Detail term="Due by">
-                  {item.status === "resolved"
+                  {!isOpenStatus(item.status)
                     ? "—"
                     : formatDateTime(dueAt(item).toISOString(), item.timeZone)}
                   {overdue && " (overdue)"}

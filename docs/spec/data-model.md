@@ -9,14 +9,14 @@ Role        = 'resident' | 'coordinator' | 'manager'
 Category    = 'plumbing' | 'electrical' | 'heating_cooling' | 'appliance' | 'doors_locks' | 'pest' | 'general'
 Trade       = Category                       // vendors use the same keys
 Urgency     = 'emergency' | 'high' | 'normal' | 'low'
-Status      = 'new' | 'triaged' | 'scheduled' | 'in_progress' | 'resolved'
+Status      = 'new' | 'triaged' | 'scheduled' | 'in_progress' | 'resolved' | 'cancelled'   // resolved + cancelled are closed
 Location    = 'kitchen' | 'bathroom' | 'bedroom' | 'living_room' | 'entry' | 'laundry' | 'balcony' | 'other'
 TimeSlot    = 'morning' | 'afternoon' | 'evening'   // 08–12, 12–17, 17–20 building-local
 TimelineEventType = 'created' | 'triaged' | 'vendor_assigned' | 'scheduled' | 'rescheduled'
                   | 'started' | 'resolved' | 'note' | 'cancelled' | 'reopened'   // last two P1/P2
 ```
 
-Display labels: Plumbing · Electrical · Heating & cooling · Appliance · Doors & locks · Pests · General repair. Urgency: Emergency · High · Normal · Low. Status: New · Triaged · Scheduled · In progress · Resolved. Status and urgency badges always show a text label (and may add an icon) and never rely on colour alone.
+Display labels: Plumbing · Electrical · Heating & cooling · Appliance · Doors & locks · Pests · General repair. Urgency: Emergency · High · Normal · Low. Status: New · Triaged · Scheduled · In progress · Resolved · Cancelled. Status and urgency badges always show a text label (and may add an icon) and never rely on colour alone.
 
 ## Entities
 
@@ -117,7 +117,7 @@ new ──triage──▶ triaged ──schedule──▶ scheduled ──start�
 | scheduled → scheduled | `request:schedule` | Coordinator | new valid window | `rescheduled` |
 | scheduled → in_progress | `request:start` | Coordinator | none | `started` |
 | in_progress → resolved | `request:resolve` | Coordinator | resolution note required | `resolved` (note); sets `resolvedAt` |
-| new → (cancelled) | `request:cancel` | Resident | P1; status stays out of scope for P0 | `cancelled` |
+| new → cancelled | `request:cancel` | Resident (own request) | optional reason; leaves open counts | `cancelled` (note) |
 | resolved → in_progress | `request:reopen` | Resident/Coordinator | P2; ≤7 days after resolvedAt | `reopened` |
 
 Any other transition returns `409 Conflict` from the API, with `{ code: 'INVALID_TRANSITION' }`. The UI shows only the next valid action button(s). Export the machine as data (`TRANSITIONS: Record<Status, {action, to}[]>`) so the UI, handlers and tests share one table.

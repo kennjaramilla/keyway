@@ -22,6 +22,7 @@ import { useVendors, useWorkflowAction } from "../hooks/useRequest";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
+  cancelSchema,
   makeScheduleFormSchema,
   resolveSchema,
   TRANSITIONS,
@@ -78,6 +79,7 @@ export function WorkflowActions({ request }: { request: RequestDetail }) {
         </Button>
       )}
       {offered.includes("request:resolve") && <ResolveDialog {...dialogProps} />}
+      {offered.includes("request:cancel") && <CancelDialog {...dialogProps} />}
     </div>
   );
 }
@@ -92,6 +94,8 @@ function ActionDialog({
   hint,
   formId,
   submitLabel,
+  submitVariant = "primary",
+  closeLabel = "Cancel",
   onFinished,
   children,
 }: {
@@ -103,6 +107,8 @@ function ActionDialog({
   hint?: string;
   formId: string;
   submitLabel: string;
+  submitVariant?: "primary" | "danger";
+  closeLabel?: string;
   onFinished: () => void;
   children: (finish: () => void) => ReactNode;
 }) {
@@ -136,9 +142,9 @@ function ActionDialog({
         footer={
           <>
             <DialogClose asChild>
-              <Button variant="secondary">Cancel</Button>
+              <Button variant="secondary">{closeLabel}</Button>
             </DialogClose>
-            <Button type="submit" form={formId}>
+            <Button type="submit" form={formId} variant={submitVariant}>
               {submitLabel}
             </Button>
           </>
@@ -383,6 +389,42 @@ function ResolveDialog({ request, run, disabled, onFinished }: DialogProps) {
             error={formState.errors.resolutionNote?.message}
           >
             {(control) => <Textarea {...control} {...register("resolutionNote")} rows={3} />}
+          </FormField>
+        </form>
+      )}
+    </ActionDialog>
+  );
+}
+
+function CancelDialog({ request, run, disabled, onFinished }: DialogProps) {
+  const { register, handleSubmit, formState } = useForm({
+    resolver: zodResolver(cancelSchema),
+    defaultValues: { reason: "" },
+  });
+  return (
+    <ActionDialog
+      label="Cancel request"
+      title={`Cancel ${request.number}?`}
+      description="Your coordinator will see that you cancelled it. You can't undo this."
+      variant="secondary"
+      disabled={disabled}
+      formId="cancel-form"
+      submitLabel="Cancel request"
+      submitVariant="danger"
+      closeLabel="Keep request"
+      onFinished={onFinished}
+    >
+      {(finish) => (
+        <form
+          id="cancel-form"
+          noValidate
+          onSubmit={handleSubmit((body) => {
+            finish();
+            run({ action: "cancel", body });
+          })}
+        >
+          <FormField label="Reason (optional)" error={formState.errors.reason?.message}>
+            {(control) => <Textarea {...control} {...register("reason")} rows={3} />}
           </FormField>
         </form>
       )}

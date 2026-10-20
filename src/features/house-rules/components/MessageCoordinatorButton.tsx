@@ -4,6 +4,7 @@ import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useRequests } from "@/features/requests/hooks/useRequests";
+import { isOpenStatus } from "@/features/requests/schema";
 import { useCurrentSession } from "@/features/session/hooks";
 import { roleCan } from "@/lib/auth/permissions";
 
@@ -25,7 +26,7 @@ export function MessageCoordinatorButton() {
 function ResidentButton() {
   const requests = useRequests();
   const latestOpen = requests.data
-    ?.filter((request) => request.status !== "resolved")
+    ?.filter((request) => isOpenStatus(request.status))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
   return (
     <Button asChild>

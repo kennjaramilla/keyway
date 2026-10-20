@@ -1,9 +1,11 @@
 import {
+  isOpenStatus,
   isOverdue,
   makeRequestCreateSchema,
   makeScheduleFormSchema,
   makeScheduleSchema,
   nextStatus,
+  OPEN_STATUSES,
   resolveSchema,
   STATUSES,
   TRANSITIONS,
@@ -89,6 +91,17 @@ describe("status machine", () => {
     expect(nextStatus("new", "request:start")).toBeNull();
     expect(nextStatus("triaged", "request:resolve")).toBeNull();
     expect(nextStatus("resolved", "request:triage")).toBeNull();
+  });
+
+  it("lets only a new request be cancelled, and nothing follows a cancel", () => {
+    expect(nextStatus("new", "request:cancel")).toBe("cancelled");
+    expect(nextStatus("triaged", "request:cancel")).toBeNull();
+    expect(TRANSITIONS.cancelled).toEqual([]);
+  });
+
+  it("counts resolved and cancelled requests as closed", () => {
+    expect(STATUSES.filter((status) => !isOpenStatus(status))).toEqual(["resolved", "cancelled"]);
+    expect(OPEN_STATUSES).toEqual(["new", "triaged", "scheduled", "in_progress"]);
   });
 });
 

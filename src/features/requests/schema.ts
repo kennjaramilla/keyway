@@ -42,7 +42,14 @@ const SLA_HOURS: Record<Urgency, number> = {
   low: 336,
 };
 
-export const STATUSES = ["new", "triaged", "scheduled", "in_progress", "resolved"] as const;
+export const STATUSES = [
+  "new",
+  "triaged",
+  "scheduled",
+  "in_progress",
+  "resolved",
+  "cancelled",
+] as const;
 export const statusSchema = z.enum(STATUSES);
 export type Status = z.infer<typeof statusSchema>;
 export const STATUS_LABELS: Record<Status, string> = {
@@ -51,7 +58,13 @@ export const STATUS_LABELS: Record<Status, string> = {
   scheduled: "Scheduled",
   in_progress: "In progress",
   resolved: "Resolved",
+  cancelled: "Cancelled",
 };
+
+/** Statuses that need no more work; everything else counts as open. */
+const CLOSED_STATUSES: readonly Status[] = ["resolved", "cancelled"];
+export const isOpenStatus = (status: Status) => !CLOSED_STATUSES.includes(status);
+export const OPEN_STATUSES: Status[] = STATUSES.filter(isOpenStatus);
 
 export const LOCATIONS = [
   "kitchen",
@@ -151,10 +164,18 @@ export const requestListSchema = z.array(requestSchema);
 // Status machine: the UI, the MSW handlers and the tests share this table.
 
 export type TransitionAction =
-  "request:triage" | "request:schedule" | "request:start" | "request:resolve" | "request:reopen";
+  | "request:triage"
+  | "request:schedule"
+  | "request:start"
+  | "request:resolve"
+  | "request:cancel"
+  | "request:reopen";
 
 export const TRANSITIONS: Record<Status, readonly { action: TransitionAction; to: Status }[]> = {
-  new: [{ action: "request:triage", to: "triaged" }],
+  new: [
+    { action: "request:triage", to: "triaged" },
+    { action: "request:cancel", to: "cancelled" },
+  ],
   triaged: [{ action: "request:schedule", to: "scheduled" }],
   scheduled: [
     { action: "request:schedule", to: "scheduled" },
@@ -162,6 +183,7 @@ export const TRANSITIONS: Record<Status, readonly { action: TransitionAction; to
   ],
   in_progress: [{ action: "request:resolve", to: "resolved" }],
   resolved: [{ action: "request:reopen", to: "in_progress" }],
+  cancelled: [],
 };
 
 /** The status an action moves a request to, or null if not allowed from `from` (API: 409). */
@@ -179,7 +201,7 @@ export function isOverdue(
   request: Pick<MaintenanceRequest, "createdAt" | "urgency" | "status">,
   now: Date = new Date(),
 ) {
-  return request.status !== "resolved" && now > dueAt(request);
+  return isOpenStatus(request.status) && now > dueAt(request);
 }
 
 // Action inputs (forms + MSW validation). `today` is building-local YYYY-MM-DD.
@@ -251,6 +273,10 @@ export const triageSchema = z.object({
 });
 
 export const assignSchema = z.object({ vendorId: z.string().min(1, "Choose a vendor.") });
+
+export const cancelSchema = z.object({
+  reason: z.string().trim().max(500, "Keep the reason under 500 characters.").optional(),
+});
 
 export const resolveSchema = z.object({
   resolutionNote: z

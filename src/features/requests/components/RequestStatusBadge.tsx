@@ -7,6 +7,7 @@ const STATUS_TONES: Record<Status, BadgeTone> = {
   scheduled: "primary",
   in_progress: "info",
   resolved: "success",
+  cancelled: "neutral",
 };
 
 const URGENCY_TONES: Record<Urgency, BadgeTone> = {

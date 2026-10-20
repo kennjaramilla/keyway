@@ -1,5 +1,6 @@
 import {
   dueAt,
+  isOpenStatus,
   isOverdue,
   URGENCIES,
   type MaintenanceRequest,
@@ -18,7 +19,7 @@ type BuildingLike = Named & { address?: string; timezone?: string };
 /** Share of the target window used before an open request counts as at risk. */
 const AT_RISK_SHARE = 0.5;
 
-const isOpen = (request: MaintenanceRequest) => request.status !== "resolved";
+const isOpen = (request: MaintenanceRequest) => isOpenStatus(request.status);
 
 function countByStatus(requests: MaintenanceRequest[]) {
   const counts: Partial<Record<Status, number>> = {};
