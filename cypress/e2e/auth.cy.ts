@@ -28,7 +28,12 @@ describe("sign-in and route gating", () => {
       cy.findByRole("heading", { level: 1, name: heading }).should("be.visible");
       cy.findByRole("navigation", { name: "Main" })
         .findAllByRole("link")
-        .then((links) => expect([...links].map((link) => link.textContent)).to.deep.equal(nav));
+        .then((links) =>
+          // Ignore an unread badge after a label.
+          expect([...links].map((link) => link.textContent?.replace(/\d+\+?$/, ""))).to.deep.equal(
+            nav,
+          ),
+        );
       cy.findByRole("button", { name: new RegExp(`^${name}`) }).should("be.visible");
       cy.checkPageA11y();
     });
