@@ -17,6 +17,7 @@ Next 16 differs from older versions (`proxy.ts` instead of middleware, Cache Com
 | Command                                                     | What it does                                                            |
 | ----------------------------------------------------------- | ----------------------------------------------------------------------- |
 | `npm run dev`                                               | Dev server on :3000 (MSW on)                                            |
+| `npm run dev:api`                                           | Dev server against keyway-api on :4000 (MSW off; ADR 0004)              |
 | `npm run check`                                             | lint + typecheck + unit tests + production build. Must pass before a PR |
 | `npm test` / `npm run test:watch` / `npm run test:coverage` | Vitest (jsdom). Coverage thresholds on `src/lib` and `src/features`     |
 | `npm run build && npm run e2e`                              | Cypress against the production build on :3100                           |
@@ -40,7 +41,7 @@ src/mocks/                        seed.json, seed.ts, db.ts, handlers/, browser.
 src/stores/                       Zustand stores (UI preferences only)
 src/test/                         setup.ts, render.tsx, session.ts, next-navigation.ts
 cypress/e2e, cypress/support      e2e specs and commands
-docs/decisions/                   ADRs; read 0001-0003 before changing the architecture
+docs/decisions/                   ADRs; read 0001-0004 before changing the architecture
 ```
 
 ## How to add a feature (follow `src/features/requests/` as the reference slice)
