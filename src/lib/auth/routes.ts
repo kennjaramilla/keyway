@@ -8,6 +8,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/requests", label: "Requests", action: "request:list" },
   { href: "/messages", label: "Messages", action: "thread:view" },
   { href: "/house-rules", label: "House rules", action: "rules:ask" },
+  { href: "/billing", label: "Billing", action: "billing:view" },
 ];
 
 /** Route prefix → action required to open it (most specific first). Used by proxy.ts. */
