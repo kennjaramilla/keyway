@@ -27,9 +27,10 @@ describe("tenant isolation", () => {
     cy.visitFresh("/messages");
     cy.findByRole("list", { name: "Conversations" })
       .findAllByRole("link")
-      .should("have.length", 2)
-      .each((link) => expect(link.text()).not.to.contain("KW-1017"));
+      .should("have.length", 3)
+      .each((link) => expect(link.text()).not.to.match(/KW-1017|Guest parking/));
     apiStatus("/api/requests?buildingId=bld_harbor").should("eq", 404);
+    apiStatus("/api/threads/thr_028/messages").should("eq", 404);
     apiStatus("/api/threads?buildingId=bld_harbor").should("eq", 404);
     apiStatus("/api/requests/req_017").should("eq", 404);
     cy.checkPageA11y();

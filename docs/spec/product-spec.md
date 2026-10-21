@@ -62,6 +62,7 @@ Legend: ✅ allowed · ❌ denied · *scope* = the condition that must also hold
 | `request:reopen` (Resolved→In progress, ≤7 days) | ✅ *own unit* | ✅ *in scope* | ❌ | P2 |
 | `building:assign-coordinator` | ❌ | ❌ | ✅ | P1 |
 | `vendor:list` | ❌ | ✅ *vendors serving active building* | ✅ | P0 |
+| `thread:create` (start a general chat) | ✅ *own building* | ❌ | ❌ | P1 |
 | `thread:view` (read messages) | ✅ *thread.residentId = self* | ✅ *thread.buildingId ∈ buildingIds* | ❌ | P0 |
 | `message:send` | ✅ *own thread* | ✅ *in scope* | ❌ | P0 |
 | `rules:ask` | ✅ *own building* | ✅ *active building* | ✅ *active building* | P0 |
