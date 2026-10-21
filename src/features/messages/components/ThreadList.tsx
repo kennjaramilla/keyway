@@ -10,6 +10,7 @@ import { SkeletonList } from "@/components/ui/skeleton";
 import { useCurrentSession } from "@/features/session/hooks";
 import { formatDateTime } from "@/lib/datetime";
 import { useThreads } from "../hooks/useThreads";
+import { conversationId } from "../schema";
 
 /** Conversations in scope, most recent first, with unread counts. */
 export function ThreadList() {
@@ -35,11 +36,21 @@ export function ThreadList() {
             ? "No conversations yet"
             : `No conversations in ${activeBuilding.name}`
         }
-        description="Messages about a request show up here. Open a request to start one."
+        description={
+          user.role === "resident"
+            ? "Start a chat with your coordinator, or message them from a request."
+            : "Messages from residents show up here."
+        }
         action={
-          <Button asChild variant="secondary">
-            <Link href="/requests">Go to requests</Link>
-          </Button>
+          user.role === "resident" ? (
+            <Button asChild>
+              <Link href="/messages/new">New chat</Link>
+            </Button>
+          ) : (
+            <Button asChild variant="secondary">
+              <Link href="/requests">Go to requests</Link>
+            </Button>
+          )
         }
       />
     );
@@ -57,18 +68,20 @@ export function ThreadList() {
         return (
           <li key={thread.id}>
             <Link
-              href={`/messages/${encodeURIComponent(thread.requestId)}`}
+              href={`/messages/${encodeURIComponent(conversationId(thread))}`}
               className="flex items-center gap-3 px-4 py-3 hover:bg-surface-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <p className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-xs font-medium text-fg-muted">{thread.request.number}</span>
+                  <span className="text-xs font-medium text-fg-muted">
+                    {thread.request?.number ?? "Chat"}
+                  </span>
                   <span
                     className={
                       thread.unreadCount > 0 ? "font-semibold text-fg" : "font-medium text-fg"
                     }
                   >
-                    {thread.request.title}
+                    {thread.request?.title ?? thread.subject}
                   </span>
                   {thread.unreadCount > 0 && (
                     <Badge tone="primary">{thread.unreadCount} unread</Badge>

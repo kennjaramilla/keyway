@@ -92,6 +92,7 @@ As a coordinator, I move a request through its workflow from the detail page.
 
 **3.4 Polling. P1** While a thread is open and the tab is visible, poll every 5s (TanStack `refetchInterval`, paused when hidden). New messages are announced in a polite live region.
 **3.5 Mark as read. P1** Opening a thread calls `/read`, and the badges update.
+**3.6 General chat. P1** Given I'm a resident, when I choose "New chat" on Messages and send a subject and message, then a conversation that isn't tied to a request opens with my building's coordinator. It's listed by its subject (labelled "Chat"), and the coordinator sees it in that building's inbox with an unread count. Other residents and coordinators who don't cover the building get 404.
 **3.6 Attachments, typing indicators. P2**
 
 ---
@@ -104,7 +105,7 @@ As a coordinator, I move a request through its workflow from the detail page.
 - When Grace switches to Maple Court and asks the same question, then the answer and the citation change to `mpc-pets` (§2.1).
 
 **4.2 "I don't know". P0** (part of E2E-5)
-- When I ask "What is the Wi-Fi password?", then the reply is exactly "I don't know. Please message your coordinator.", with no citations and a "Message your coordinator" button (it opens my latest open request's thread, or New request if I have none).
+- When I ask "What is the Wi-Fi password?", then the reply is exactly "I don't know. Please message your coordinator.", with no citations and a "Message your coordinator" button (it opens New chat).
 - Questions shorter than 3 characters are rejected inline.
 
 **4.3 Claude mode. P1** Given `ANTHROPIC_API_KEY` is set, the badge reads "Answer mode: Claude". Any error falls back to retrieval, and the badge then says Retrieval.

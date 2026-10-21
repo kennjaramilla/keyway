@@ -76,10 +76,9 @@ describe("HouseRulesAssistant", () => {
       await within(region).findByText("I don't know. Please message your coordinator."),
     ).toBeInTheDocument();
     expect(within(region).queryByRole("list", { name: "Sources" })).not.toBeInTheDocument();
-    // Amara's newest open request is KW-1030.
     expect(
       await within(region).findByRole("link", { name: "Message your coordinator" }),
-    ).toHaveAttribute("href", "/messages/req_030");
+    ).toHaveAttribute("href", "/messages/new");
   });
 
   it("offers coordinators their inbox and staff wording instead", async () => {

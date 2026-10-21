@@ -5,7 +5,7 @@ describe("messages", () => {
     cy.visitFresh("/messages");
     cy.title().should("eq", "Messages · Harbor View Lofts · Keyway");
     cy.findByRole("list", { name: "Conversations" }).within(() => {
-      cy.findAllByRole("link").should("have.length", 2);
+      cy.findAllByRole("link").should("have.length", 3);
       cy.findByRole("link", { name: /KW-1017/ }).should("contain.text", "1 unread");
     });
     cy.checkPageA11y();
@@ -50,6 +50,30 @@ describe("messages", () => {
     cy.findByText("Not sent").should("not.exist");
     cy.findByLabelText("Message Diego Santillán").should("have.value", "");
     cy.findByRole("list", { name: "Conversation" }).should("contain.text", text);
+  });
+
+  it("lets a resident start a general chat that the coordinator answers", () => {
+    cy.signInAs("resident");
+    cy.visitFresh("/messages");
+    cy.findByRole("link", { name: "New chat" }).click();
+    cy.findByRole("heading", { level: 1, name: "New chat" }).should("be.visible");
+    cy.checkPageA11y();
+    cy.findByRole("textbox", { name: /Subject/ }).type("Bike storage key");
+    cy.findByRole("textbox", { name: /Message/ }).type("Where do I get a key for the bike room?");
+    cy.findByRole("button", { name: "Start chat" }).click();
+
+    cy.findByRole("heading", { level: 1, name: "Bike storage key" }).should("be.visible");
+    cy.findByRole("list", { name: "Conversation" }).should("contain.text", "bike room");
+    cy.findByRole("link", { name: "View request" }).should("not.exist");
+    cy.checkPageA11y();
+
+    cy.signInAs("coordinator");
+    cy.visit("/messages");
+    cy.findByRole("link", { name: /Bike storage key/ })
+      .should("contain.text", "1 unread")
+      .click();
+    cy.findByLabelText("Message Amara Okafor").type("The front desk has them.{enter}");
+    cy.findByRole("list", { name: "Conversation" }).should("contain.text", "front desk");
   });
 
   it("shows not found for another unit's conversation", () => {

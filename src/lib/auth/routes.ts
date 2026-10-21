@@ -13,6 +13,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
 /** Route prefix → action required to open it (most specific first). Used by proxy.ts. */
 const ROUTE_ACTIONS: readonly { prefix: string; action: Action }[] = [
   { prefix: "/requests/new", action: "request:create" },
+  { prefix: "/messages/new", action: "thread:create" },
   ...NAV_ITEMS.map(({ href, action }) => ({ prefix: href, action })),
 ];
 

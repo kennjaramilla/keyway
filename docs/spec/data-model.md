@@ -81,8 +81,8 @@ Derived (not stored): `isOverdue`, `dueAt = createdAt + slaHours[urgency]`, `age
 `id` (`evt_*`), `type: TimelineEventType`, `at: ISO`, `actorId: string`, `fromStatus?: Status`, `toStatus?: Status`, `note?: string`, `meta?: { vendorId?: string; visitWindow?: {start,end} }`.
 
 ### Thread / Message
-Thread: `id` (`thr_*`), `requestId` (unique, one thread per request), `buildingId`, `residentId`, `coordinatorId`, `createdAt`, `lastMessageAt`, `lastReadAt: Record<userId, ISO | null>`.
-A thread is created lazily when the first message is sent on a request.
+Thread: `id` (`thr_*`), `requestId` (unique, one thread per request; `null` for a general chat), `subject` (general chats only, 3–80 characters), `buildingId`, `residentId`, `coordinatorId`, `createdAt`, `lastMessageAt`, `lastReadAt: Record<userId, ISO | null>`.
+A request thread is created lazily when the first message is sent on a request. A general chat is created by a resident with `POST /api/threads {subject, body}`, addressed to the building's first coordinator. A conversation is addressed by its request id (request thread) or its thread id (general chat).
 
 Message: `id` (`msg_*`), `threadId`, `authorId`, `body`, `createdAt`. Client-only for optimistic sends: `clientId` (temporary id) and `pending`/`failed` flags, which are never persisted.
 
@@ -155,8 +155,9 @@ GET  /api/requests?buildingId&status&sort        POST /api/requests
 GET  /api/requests/:id
 POST /api/requests/:id/{triage|assign|schedule|start|resolve}
 GET  /api/vendors?buildingId
-GET  /api/threads?buildingId                     GET /api/threads/:requestId/messages
-POST /api/threads/:requestId/messages            POST /api/threads/:requestId/read
+GET  /api/threads?buildingId                     POST /api/threads {subject, body}   (resident)
+GET  /api/threads/:id/messages                   POST /api/threads/:id/messages
+POST /api/threads/:id/read                       (:id = request id or general chat thread id)
 POST /api/assistant          {buildingId, question}   (passthrough to Next route when real mode is on)
 GET  /api/dashboard                              POST /api/demo/reset
 ```

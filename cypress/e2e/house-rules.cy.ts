@@ -53,8 +53,8 @@ describe("house rules assistant", () => {
     cy.findByRole("button", { name: /Switch building/ }).should("not.exist");
     ask("Is there a swimming pool or gym?");
     cy.findByRole("link", { name: "Message your coordinator" }).click();
-    cy.location("pathname").should("eq", "/messages/req_030");
-    cy.findByRole("heading", { name: "No messages yet" }).should("be.visible");
+    cy.location("pathname").should("eq", "/messages/new");
+    cy.findByRole("heading", { level: 1, name: "New chat" }).should("be.visible");
   });
 
   it("rejects very short questions inline", () => {

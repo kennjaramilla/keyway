@@ -18,14 +18,14 @@ import { MessageComposer } from "./MessageComposer";
 const unknownAuthor = (id: string): Participant => ({ id, name: "Former user", role: "resident" });
 
 /**
- * The conversation for one request (resident and coordinator). Embeddable on
- * the request detail page; renders nothing for roles that can't read threads.
+ * One conversation (resident and coordinator), about a request or a general chat.
+ * Embeddable on the request detail page; renders nothing for roles that can't read threads.
  */
 export function MessageThread({
-  requestId,
+  conversationId,
   headingLevel = 2,
 }: {
-  requestId: string;
+  conversationId: string;
   /** Heading level for the empty state (3 when embedded under a card title). */
   headingLevel?: 2 | 3;
 }) {
@@ -37,7 +37,7 @@ export function MessageThread({
     [],
   );
   const allowed = roleCan(user.role, "thread:view");
-  const { query, detail, messages, send, retry, announcement } = useConversation(requestId, {
+  const { query, detail, messages, send, retry, announcement } = useConversation(conversationId, {
     onFailed,
     enabled: allowed,
   });
@@ -49,7 +49,7 @@ export function MessageThread({
       return (
         <EmptyState
           title="Conversation not found"
-          description="It may belong to another unit or building, or the request no longer exists."
+          description="It may belong to another unit or building, or it no longer exists."
           action={
             <Button asChild variant="secondary">
               <Link href="/messages">Back to messages</Link>
