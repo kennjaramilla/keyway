@@ -9,8 +9,20 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
+/** Set to use the real API (github.com/kennjaramilla/keyway-api) instead of the in-browser mock. */
+const apiUrl = process.env.KEYWAY_API_URL?.replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  env: { NEXT_PUBLIC_API_MOCKING: apiUrl ? "off" : (process.env.NEXT_PUBLIC_API_MOCKING ?? "on") },
+  // Fallback, so Next's own /api/assistant route still wins; everything else goes to the API.
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: apiUrl ? [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }] : [],
+    };
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

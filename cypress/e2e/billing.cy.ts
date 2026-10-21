@@ -1,3 +1,5 @@
+import { mockOnlyIt } from "../support/commands";
+
 // Resident billing: balance, a demo payment with a saved method, and a declined payment.
 describe("billing", () => {
   it("pays a charge and shows it in the history", () => {
@@ -26,7 +28,7 @@ describe("billing", () => {
       .and("contain.text", "Checking ending 6789");
   });
 
-  it("keeps the charges open when a payment is declined (?fail=payments)", () => {
+  mockOnlyIt("keeps the charges open when a payment is declined (?fail=payments)", () => {
     cy.signInAs("resident", "usr_res_diego");
     cy.visitFresh("/billing?fail=payments");
     cy.findByRole("table", { name: "Open charges" }).should("contain.text", "Overdue");

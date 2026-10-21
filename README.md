@@ -29,6 +29,19 @@ npm run dev            # http://localhost:3000
 
 There's no backend. A Mock Service Worker API with a seeded in-browser database answers `/api/*` (see `docs/decisions/0001-msw-mock-api.md`). Use **Reset demo data** in the user menu, or add `?reset` to any URL, to start over.
 
+## Run it against the real API
+
+Keyway ships with an in-browser mock API. [keyway-api](https://github.com/kennjaramilla/keyway-api) implements the same contract with NestJS and MongoDB:
+
+```bash
+# in keyway-api (MongoDB via Docker Desktop)
+npm install && npm run db:up && npm run start:dev
+# here
+npm run dev:api        # KEYWAY_API_URL=http://localhost:4000: mock off, /api/* proxied
+```
+
+See ADR [0004](docs/decisions/0004-real-api-alongside-the-mock.md). CI runs the Cypress suite against both backends.
+
 ## Test it
 
 ```bash

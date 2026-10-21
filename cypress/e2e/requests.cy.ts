@@ -1,3 +1,5 @@
+import { mockOnlyIt } from "../support/commands";
+
 describe("requests list", () => {
   it("shows a resident only their own unit's requests", () => {
     cy.signInAs("resident");
@@ -57,7 +59,7 @@ describe("requests list", () => {
       .should("eq", 404);
   });
 
-  it("starts each test from fresh seed data", () => {
+  mockOnlyIt("starts each test from fresh seed data (?reset)", () => {
     cy.signInAs("coordinator", "usr_coord_theo");
     cy.visitFresh("/requests?reset");
     cy.location("search").should("eq", "");
