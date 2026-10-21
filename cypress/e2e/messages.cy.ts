@@ -1,3 +1,5 @@
+import { mockOnlyIt } from "../support/commands";
+
 // E2E-4: messaging between coordinator and resident, with optimistic send and rollback.
 describe("messages", () => {
   it("lists conversations with unread counts", () => {
@@ -35,7 +37,7 @@ describe("messages", () => {
     cy.checkPageA11y();
   });
 
-  it("rolls back a failed send and retries it (?fail=messages)", () => {
+  mockOnlyIt("rolls back a failed send and retries it (?fail=messages)", () => {
     const text = "Second note about the valve.";
     cy.signInAs("coordinator");
     cy.visitFresh("/messages/req_017?fail=messages");

@@ -16,7 +16,7 @@ declare global {
        * coordinator Grace, manager Helena; pass a seeded userId for anyone else.
        */
       signInAs(role: Role, userId?: string): Chainable<void>;
-      /** Visit a page with fresh seed data (clears the persisted mock db). */
+      /** Visit a page with fresh seed data (clears the mock db, or re-seeds the real API). */
       visitFresh(path: string, options?: Partial<VisitOptions>): Chainable<AUTWindow>;
       /**
        * Inject axe and fail on serious/critical WCAG A/AA violations, in the light
@@ -40,6 +40,7 @@ Cypress.Commands.add("signInAs", (role: Role, userId: string = DEMO_USER_IDS[rol
 });
 
 Cypress.Commands.add("visitFresh", (path: string, options: Partial<Cypress.VisitOptions> = {}) => {
+  if (Cypress.env("REAL_API")) cy.request("POST", "/api/demo/reset");
   return cy.visit(path, {
     ...options,
     onBeforeLoad(win) {
@@ -91,3 +92,7 @@ Cypress.Commands.add("checkPageA11y", (context?: string) => {
 });
 
 export {};
+
+/** For tests that rely on the mock API's `?fail=` demo toggles, which the real API doesn't have. */
+export const mockOnlyIt = (title: string, test: () => void) =>
+  Cypress.env("REAL_API") ? it.skip(title, test) : it(title, test);
