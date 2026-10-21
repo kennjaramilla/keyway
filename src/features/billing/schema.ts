@@ -78,6 +78,46 @@ export const accountSchema = z.object({
 });
 export type Account = z.infer<typeof accountSchema>;
 
+/** GET /api/billing/units?buildingId: one row per occupied unit, for staff. */
+export const unitBalanceSchema = z.object({
+  unitId: z.string(),
+  unitLabel: z.string(),
+  residentId: z.string(),
+  residentName: z.string(),
+  balanceCents: z.number().int().nonnegative(),
+  overdueCents: z.number().int().nonnegative(),
+  openCount: z.number().int().nonnegative(),
+  lastPaymentAt: z.iso.datetime().nullable(),
+});
+export type UnitBalance = z.infer<typeof unitBalanceSchema>;
+export const unitBalanceListSchema = z.array(unitBalanceSchema);
+
+/** Damage charges are due this many days after they're posted. */
+export const DAMAGE_DUE_DAYS = 14;
+export const DAMAGE_MAX_CENTS = 500_000;
+
+/** POST /api/requests/:id/charges: a coordinator bills the resident for damage. */
+export const damageChargeSchema = z.object({
+  amountCents: z
+    .number({ error: "Enter an amount." })
+    .int("Use dollars and cents.")
+    .min(100, "The minimum is $1.00.")
+    .max(DAMAGE_MAX_CENTS, "The maximum is $5,000.00."),
+  description: z
+    .string()
+    .trim()
+    .min(5, "Say what the charge is for (at least 5 characters).")
+    .max(120, "Keep it under 120 characters."),
+});
+export type DamageChargeInput = z.infer<typeof damageChargeSchema>;
+
+/** "12.5" or "$1,250.00" -> 1250 / 125000 cents; null when it isn't a money amount. */
+export function parseMoney(text: string): number | null {
+  const cleaned = text.replace(/[$,\s]/g, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null;
+  return Math.round(Number(cleaned) * 100);
+}
+
 const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 /** "$2,450.00" */
 export const formatMoney = (amountCents: number) => usd.format(amountCents / 100);

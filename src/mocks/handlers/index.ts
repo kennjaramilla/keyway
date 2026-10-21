@@ -12,10 +12,11 @@ import { vendorHandlers } from "./vendors";
  */
 export const handlers = [
   ...sessionHandlers,
+  // Before requests: its POST /requests/:id/:action would answer /requests/:id/charges with 404.
+  ...billingHandlers,
   ...requestHandlers,
   ...threadHandlers,
   ...vendorHandlers,
   ...dashboardHandlers,
   ...ruleHandlers,
-  ...billingHandlers,
 ];
