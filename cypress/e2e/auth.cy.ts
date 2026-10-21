@@ -10,13 +10,13 @@ describe("sign-in and route gating", () => {
       name: "Grace Adeyemi",
       home: "/requests",
       heading: "Requests",
-      nav: ["Requests", "Messages", "House rules"],
+      nav: ["Requests", "Messages", "House rules", "Billing"],
     },
     {
       name: "Helena Brightwater",
       home: "/dashboard",
       heading: "Dashboard",
-      nav: ["Dashboard", "Requests", "House rules"],
+      nav: ["Dashboard", "Requests", "House rules", "Billing"],
     },
   ];
 

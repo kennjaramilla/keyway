@@ -31,6 +31,7 @@ export const ACTIONS = [
   "dashboard:view",
   "billing:view",
   "billing:pay",
+  "charge:create",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -86,6 +87,8 @@ const ROLE_ACTIONS: Record<Role, ReadonlySet<Action>> = {
     "message:send",
     "rules:ask",
     "rules:view",
+    "billing:view",
+    "charge:create",
   ]),
   manager: new Set<Action>([
     "session:sign-in",
@@ -100,6 +103,7 @@ const ROLE_ACTIONS: Record<Role, ReadonlySet<Action>> = {
     "rules:ask",
     "rules:view",
     "dashboard:view",
+    "billing:view",
   ]),
 };
 
@@ -147,6 +151,7 @@ function inScope(subject: Subject, action: Action, resource: Resource): boolean 
       case "vendor:list":
       case "rules:ask":
       case "rules:view":
+      case "billing:view":
         return isActiveBuilding(subject, resource.buildingId);
       default:
         // switch, view, workflow actions, threads: any covered building.
@@ -154,8 +159,8 @@ function inScope(subject: Subject, action: Action, resource: Resource): boolean 
     }
   }
 
-  // Manager: whole portfolio, but rules follow the active building.
-  if (action === "rules:ask" || action === "rules:view") {
+  // Manager: whole portfolio, but rules and billing follow the active building.
+  if (action === "rules:ask" || action === "rules:view" || action === "billing:view") {
     return (resource.buildingId ?? subject.activeBuildingId) === subject.activeBuildingId;
   }
   return true;

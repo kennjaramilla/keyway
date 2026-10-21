@@ -166,6 +166,8 @@ POST /api/threads/:id/read                       (:id = request id or general ch
 POST /api/assistant          {buildingId, question}   (passthrough to Next route when real mode is on)
 GET  /api/dashboard                              POST /api/demo/reset
 GET  /api/billing                                POST /api/billing/payments {chargeIds, method}   (resident)
+GET  /api/billing/units?buildingId              (staff, active building)
+GET  /api/requests/:id/charges                   POST /api/requests/:id/charges {amountCents, description}   (coordinator, resolved, once)
 ```
 
 The demo error toggle: `?fail=messages` (or a dev-only setting) makes the next `POST .../messages` return 500, to demo the rollback. `?fail=payments` makes the next payment return 502 "Payment declined" and changes nothing.

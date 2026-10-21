@@ -39,9 +39,42 @@ describe("billing", () => {
     cy.findByRole("heading", { name: "You're all paid up" }).should("be.visible");
   });
 
-  it("is not available to staff", () => {
+  it("lets a coordinator see balances and charge for damage", () => {
     cy.signInAs("coordinator");
     cy.visitFresh("/billing");
-    cy.findByRole("heading", { name: "You don't have access to this page" }).should("be.visible");
+    cy.findByRole("heading", { level: 1, name: "Billing" }).should("be.visible");
+    cy.findByRole("table", { name: "Unit balances in Harbor View Lofts" })
+      .findAllByRole("row")
+      .eq(1)
+      .should("contain.text", "Diego Santillán")
+      .and("contain.text", "Overdue");
+    cy.checkPageA11y();
+
+    cy.visit("/requests/req_004");
+    cy.findByRole("region", { name: "Damage charge" }).within(() => {
+      cy.findByRole("button", { name: "Charge resident" }).click();
+    });
+    cy.findByRole("dialog", { name: "Charge for KW-1004" }).within(() => {
+      cy.findByRole("textbox", { name: /Amount/ }).type("125");
+      cy.findByRole("textbox", { name: /What it's for/ })
+        .clear()
+        .type("Replace bent closet track");
+    });
+    cy.checkPageA11y();
+    cy.findByRole("button", { name: "Add charge" }).click();
+    cy.findByText("Charged $125.00").should("be.visible");
+    cy.findByRole("region", { name: "Damage charge" }).should(
+      "contain.text",
+      "Replace bent closet track: $125.00",
+    );
+    cy.checkPageA11y();
+
+    cy.signInAs("resident");
+    cy.visit("/billing");
+    cy.findByRole("table", { name: "Open charges" }).should(
+      "contain.text",
+      "Replace bent closet track",
+    );
+    cy.findByLabelText("Account summary").should("contain.text", "$2,661.40");
   });
 });

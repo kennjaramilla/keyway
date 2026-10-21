@@ -153,7 +153,8 @@ As a coordinator, I move a request through its workflow from the detail page.
 
 **7.1 Account summary. P1** Given I'm Amara, when I open Billing, then I see Balance due ($2,536.40), Overdue ($0.00) and Next due, my open charges oldest due first with a text status (Due / Overdue), and my payment history newest first.
 **7.2 Demo payment. P1** When I choose "Pay now", then every open charge is selected, I can untick some and pick a saved method, and the button shows the total ("Pay $86.40"). Paying records one payment with a `PAY-` reference, marks those charges paid, and shows a "Paid $86.40" toast. A declined payment (`?fail=payments`) keeps the dialog open with an error and changes nothing. No card details are collected.
-**7.3 Staff billing overview and damage charges. P2**
+**7.3 Unit balances (staff). P2** Given I'm Grace in Harbor View Lofts, when I open Billing, then I see Outstanding, Overdue and Units overdue totals and a table of each unit's resident, status (Overdue / Balance due / Paid up), open charges, overdue amount, balance and last payment, most overdue first. It follows the active building; the manager sees the same, read-only.
+**7.4 Damage charge. P2** Given a resolved request in my buildings, the coordinator can "Charge resident" once with an amount ($1.00–$5,000.00) and a description. It's due in 14 days, shows on the request's "Damage charge" card and in the resident's open charges. A second charge, or one on a request that isn't resolved, returns 409.
 
 ---
 
