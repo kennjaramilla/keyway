@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/badge";
+import { DamageChargeCard } from "@/features/billing/components/DamageChargeCard";
 import { MessageThread } from "@/features/messages/components/MessageThread";
 import { useCurrentSession, useSwitchBuilding } from "@/features/session/hooks";
 import { ApiError } from "@/lib/api-client";
@@ -161,14 +162,17 @@ export function RequestDetailView({ id }: { id: string }) {
             </Card>
           )}
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Timeline</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RequestTimeline request={item} />
-          </CardContent>
-        </Card>
+        <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RequestTimeline request={item} />
+            </CardContent>
+          </Card>
+          <DamageChargeCard request={item} />
+        </div>
       </div>
     </>
   );

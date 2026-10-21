@@ -23,8 +23,8 @@ async function navLinks() {
 describe("WorkspaceShell", () => {
   it.each([
     ["resident", ["Requests", "Messages", "House rules", "Billing"]],
-    ["coordinator", ["Requests", "Messages", "House rules"]],
-    ["manager", ["Dashboard", "Requests", "House rules"]],
+    ["coordinator", ["Requests", "Messages", "House rules", "Billing"]],
+    ["manager", ["Dashboard", "Requests", "House rules", "Billing"]],
   ])("shows the %s only the pages their role can open", async (role, expected) => {
     renderInWorkspace(<Page />, { as: role });
     expect(await navLinks()).toEqual(expected);
