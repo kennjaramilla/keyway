@@ -88,9 +88,7 @@ export function BillingView() {
         <CardHeader className="flex-row flex-wrap items-start justify-between gap-3">
           <div className="grid gap-1">
             <CardTitle id="open-charges">Open charges</CardTitle>
-            <CardDescription>
-              A late fee applies 5 days after a missed due date.
-            </CardDescription>
+            <CardDescription>A late fee applies 5 days after a missed due date.</CardDescription>
           </div>
           <PayDialog open={open} />
         </CardHeader>
