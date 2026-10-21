@@ -77,6 +77,54 @@ jobs:
           path: cypress/screenshots
           retention-days: 7
 
+  e2e-real-api:
+    name: E2E (Cypress on the real API)
+    needs: quality
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports: ["27017:27017"]
+    env:
+      KEYWAY_API_URL: http://localhost:4000
+      MONGODB_URI: mongodb://localhost:27017/keyway
+      CYPRESS_REAL_API: "true"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: kennjaramilla/keyway-api
+          path: keyway-api
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            keyway-api/package-lock.json
+      - name: Start the API
+        working-directory: keyway-api
+        run: |
+          npm ci
+          npm run build
+          nohup node dist/main.js > api.log 2>&1 &
+          npx wait-on -t 60000 http://localhost:4000/api/health
+      - uses: cypress-io/github-action@v7
+        with:
+          build: npm run build
+          start: npm run start:e2e
+          wait-on: http://localhost:3100
+          wait-on-timeout: 120
+          browser: chrome
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: cypress-real-api
+          path: |
+            cypress/screenshots
+            keyway-api/api.log
+          retention-days: 7
+
   storybook:
     name: Storybook build
     needs: quality
