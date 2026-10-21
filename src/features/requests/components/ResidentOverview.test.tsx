@@ -25,6 +25,10 @@ describe("ResidentOverview", () => {
       "href",
       "/messages",
     );
+    expect(within(actions).getByRole("link", { name: "Pay rent" })).toHaveAttribute(
+      "href",
+      "/billing",
+    );
     expect(within(actions).getByRole("link", { name: "House rules" })).toHaveAttribute(
       "href",
       "/house-rules",
