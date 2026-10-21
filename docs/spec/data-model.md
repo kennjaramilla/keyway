@@ -88,6 +88,11 @@ Message: `id` (`msg_*`), `threadId`, `authorId`, `body`, `createdAt`. Client-onl
 
 Unread count for user U on a thread = messages with `authorId ≠ U` and `createdAt > lastReadAt[U]` (or all of them if null). Opening a thread sets `lastReadAt[U] = now`.
 
+### Charge / Payment
+Charge: `id` (`chg_*`), `buildingId`, `unitId`, `residentId`, `kind: 'rent' | 'utilities' | 'fee' | 'damage'`, `description`, `amountCents` (positive integer, never a float), `dueAt`, `createdAt`, `paidAt` (null until paid), `paymentId`, `requestId` (the request a damage charge is for, else null).
+Status is derived: **Paid** if `paidAt` is set, **Overdue** if unpaid and `dueAt` has passed, otherwise **Due**.
+Payment: `id` (`pay_*`), `reference` (`PAY-2001`), `buildingId`, `unitId`, `residentId`, `chargeIds` (1+, unique, all open and the resident's own), `amountCents` (sum of the charges), `method: 'card' | 'bank'` (saved demo methods "Visa ending 4242" / "Checking ending 6789"; no card details are ever entered), `createdAt`.
+
 ### RuleDocument / RulePassage
 RuleDocument: `id` (`doc_*`), `buildingId`, `title`, `effectiveDate: 'YYYY-MM-DD'`, `version: number`.
 RulePassage: `id` (stable, `<buildingPrefix>-<topic>`, e.g. `hvl-pets`), `documentId`, `buildingId`, `section` (e.g. "3.1"), `title`, `text`.
@@ -160,9 +165,10 @@ GET  /api/threads/:id/messages                   POST /api/threads/:id/messages
 POST /api/threads/:id/read                       (:id = request id or general chat thread id)
 POST /api/assistant          {buildingId, question}   (passthrough to Next route when real mode is on)
 GET  /api/dashboard                              POST /api/demo/reset
+GET  /api/billing                                POST /api/billing/payments {chargeIds, method}   (resident)
 ```
 
-The demo error toggle: `?fail=messages` (or a dev-only setting) makes the next `POST .../messages` return 500, to demo the rollback.
+The demo error toggle: `?fail=messages` (or a dev-only setting) makes the next `POST .../messages` return 500, to demo the rollback. `?fail=payments` makes the next payment return 502 "Payment declined" and changes nothing.
 
 ## Dashboard metric definitions
 - **Open by building**: count where `status ≠ resolved`, grouped by building, split by status.

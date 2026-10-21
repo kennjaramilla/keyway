@@ -4,7 +4,7 @@ describe("sign-in and route gating", () => {
       name: "Amara Okafor",
       home: "/requests",
       heading: "Requests",
-      nav: ["Requests", "Messages", "House rules"],
+      nav: ["Requests", "Messages", "House rules", "Billing"],
     },
     {
       name: "Grace Adeyemi",
