@@ -19,7 +19,7 @@ describe("ThreadList", () => {
     expect(await screen.findByText("Loading conversations")).toBeInTheDocument();
     const list = await screen.findByRole("list", { name: "Conversations" });
     const links = within(list).getAllByRole("link");
-    expect(links).toHaveLength(2);
+    expect(links).toHaveLength(3);
     expect(links[0]).toHaveTextContent("KW-1017");
     expect(links[0]).toHaveTextContent("1 unread");
     expect(links[0]).toHaveTextContent("Diego Santillán");
@@ -37,8 +37,24 @@ describe("ThreadList", () => {
   it("shows a resident only their own threads, previewing the last message", async () => {
     renderInWorkspace(<ThreadList />, { as: "resident" });
     const list = await screen.findByRole("list", { name: "Conversations" });
-    expect(within(list).getAllByRole("link")).toHaveLength(1);
+    expect(within(list).getAllByRole("link")).toHaveLength(2);
     expect(within(list).getByText("1 unread")).toBeInTheDocument();
+  });
+
+  it("lists a general chat by its subject, linked by thread id", async () => {
+    renderInWorkspace(<ThreadList />, { as: "resident" });
+    const chat = await screen.findByRole("link", { name: /Guest parking this weekend/ });
+    expect(chat).toHaveTextContent("Chat");
+    expect(chat).toHaveAttribute("href", "/messages/thr_028");
+  });
+
+  it("offers residents a new chat when they have no conversations", async () => {
+    server.use(http.get("*/api/threads", () => HttpResponse.json([])));
+    renderInWorkspace(<ThreadList />, { as: "resident" });
+    expect(await screen.findByRole("link", { name: "New chat" })).toHaveAttribute(
+      "href",
+      "/messages/new",
+    );
   });
 
   it("shows an empty state", async () => {

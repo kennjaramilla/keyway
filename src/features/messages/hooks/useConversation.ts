@@ -15,18 +15,18 @@ const POLL_INTERVAL_MS = 5_000;
 let clientIds = 0;
 
 /**
- * One request's conversation: polled messages, optimistic sends with rollback,
+ * One conversation: polled messages, optimistic sends with rollback,
  * mark-as-read, and a polite announcement when someone else writes.
  */
 export function useConversation(
-  requestId: string,
+  conversationId: string,
   { onFailed, enabled = true }: { onFailed?: (body: string) => void; enabled?: boolean } = {},
 ) {
   const { user } = useCurrentSession();
   const queryClient = useQueryClient();
   const query = useQuery({
-    queryKey: messageKeys.thread(requestId),
-    queryFn: ({ signal }) => fetchThread(requestId, signal),
+    queryKey: messageKeys.thread(conversationId),
+    queryFn: ({ signal }) => fetchThread(conversationId, signal),
     // TanStack pauses the interval while the tab is hidden (refetchIntervalInBackground: false).
     refetchInterval: POLL_INTERVAL_MS,
     enabled,
@@ -62,9 +62,9 @@ export function useConversation(
   useEffect(() => {
     if (unread === 0) return;
     const now = new Date().toISOString();
-    markThreadRead(requestId)
+    markThreadRead(conversationId)
       .then(() => {
-        queryClient.setQueryData<ThreadDetail>(messageKeys.thread(requestId), (old) =>
+        queryClient.setQueryData<ThreadDetail>(messageKeys.thread(conversationId), (old) =>
           old?.thread
             ? {
                 ...old,
@@ -77,15 +77,15 @@ export function useConversation(
       .catch(() => {
         // Not critical: the badge stays until the next successful open.
       });
-  }, [unread, requestId, user.id, queryClient]);
+  }, [unread, conversationId, user.id, queryClient]);
 
   const deliver = useCallback(
     async (item: Pick<OutboxItem, "clientId" | "body">) => {
       try {
-        const message = await sendMessage(requestId, item.body);
+        const message = await sendMessage(conversationId, item.body);
         // An in-flight poll started before the send would overwrite it with older data.
-        await queryClient.cancelQueries({ queryKey: messageKeys.thread(requestId) });
-        queryClient.setQueryData<ThreadDetail>(messageKeys.thread(requestId), (old) =>
+        await queryClient.cancelQueries({ queryKey: messageKeys.thread(conversationId) });
+        queryClient.setQueryData<ThreadDetail>(messageKeys.thread(conversationId), (old) =>
           old ? { ...old, messages: appendMessage(old.messages, message) } : old,
         );
         dispatch({ type: "sent", clientId: item.clientId });
@@ -102,7 +102,7 @@ export function useConversation(
         return false;
       }
     },
-    [requestId, queryClient, onFailed],
+    [conversationId, queryClient, onFailed],
   );
 
   const send = useCallback(

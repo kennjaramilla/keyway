@@ -8,13 +8,16 @@ import { Button } from "@/components/ui/button";
 import { fetchThread, messageKeys } from "../api";
 import { MessageThread } from "./MessageThread";
 
-/** /messages/[requestId]: page header for the request plus its thread. */
-export function ConversationView({ requestId }: { requestId: string }) {
+/** /messages/[conversationId]: page header for the request or chat, plus its thread. */
+export function ConversationView({ conversationId }: { conversationId: string }) {
   // Same key as MessageThread, so this reads the shared cache.
   const { data } = useQuery({
-    queryKey: messageKeys.thread(requestId),
-    queryFn: ({ signal }) => fetchThread(requestId, signal),
+    queryKey: messageKeys.thread(conversationId),
+    queryFn: ({ signal }) => fetchThread(conversationId, signal),
   });
+  const title = data?.request
+    ? `${data.request.number}: ${data.request.title}`
+    : (data?.subject ?? "Conversation");
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
       <Button asChild variant="link" size="sm" className="mb-2 self-start">
@@ -24,17 +27,22 @@ export function ConversationView({ requestId }: { requestId: string }) {
         </Link>
       </Button>
       <PageHeader
-        title={data ? `${data.request.number}: ${data.request.title}` : "Conversation"}
-        description={data && "Conversation between the resident and the building coordinator"}
+        title={title}
+        description={
+          data &&
+          (data.request
+            ? "Conversation between the resident and the building coordinator"
+            : "General chat between the resident and the building coordinator")
+        }
         actions={
-          data && (
+          data?.request && (
             <Button asChild variant="secondary" size="sm">
-              <Link href={`/requests/${encodeURIComponent(requestId)}`}>View request</Link>
+              <Link href={`/requests/${encodeURIComponent(data.request.id)}`}>View request</Link>
             </Button>
           )
         }
       />
-      <MessageThread requestId={requestId} />
+      <MessageThread conversationId={conversationId} />
     </div>
   );
 }

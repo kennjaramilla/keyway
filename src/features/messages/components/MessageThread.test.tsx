@@ -20,7 +20,7 @@ describe("MessageThread", () => {
         { once: true },
       ),
     );
-    renderInWorkspace(<MessageThread requestId="req_017" />, { as: "coordinator" });
+    renderInWorkspace(<MessageThread conversationId="req_017" />, { as: "coordinator" });
     expect(await screen.findByText("Loading messages")).toBeInTheDocument();
     const items = within(await conversation()).getAllByRole("listitem");
     expect(items).toHaveLength(5);
@@ -30,7 +30,7 @@ describe("MessageThread", () => {
   });
 
   it("shows the empty state for a request without messages", async () => {
-    renderInWorkspace(<MessageThread requestId="req_030" />, { as: "resident" });
+    renderInWorkspace(<MessageThread conversationId="req_030" />, { as: "resident" });
     expect(await screen.findByRole("heading", { name: "No messages yet" })).toBeInTheDocument();
     expect(screen.getByLabelText("Message Grace Adeyemi")).toBeInTheDocument();
   });
@@ -53,7 +53,7 @@ describe("MessageThread", () => {
         );
       }),
     );
-    const { user } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { user } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     const box = await screen.findByLabelText("Message Diego Santillán");
@@ -68,7 +68,7 @@ describe("MessageThread", () => {
   });
 
   it("keeps a sent message when an older poll lands after it", async () => {
-    const { user, queryClient } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { user, queryClient } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     await conversation();
@@ -98,7 +98,7 @@ describe("MessageThread", () => {
   });
 
   it("adds a new line with Shift+Enter instead of sending", async () => {
-    const { user } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { user } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     const box = await screen.findByLabelText("Message Diego Santillán");
@@ -108,7 +108,7 @@ describe("MessageThread", () => {
   });
 
   it("does not send whitespace-only messages", async () => {
-    const { user } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { user } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     const box = await screen.findByLabelText("Message Diego Santillán");
@@ -119,7 +119,7 @@ describe("MessageThread", () => {
 
   it("rolls back a failed send: Not sent, Retry, a toast and the text back in the box", async () => {
     armFailure("messages");
-    const { user } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { user } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     const box = await screen.findByLabelText("Message Diego Santillán");
@@ -136,7 +136,7 @@ describe("MessageThread", () => {
   });
 
   it("announces new messages from the other person", async () => {
-    const { queryClient } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { queryClient } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     await conversation();
@@ -155,7 +155,7 @@ describe("MessageThread", () => {
   });
 
   it("marks the thread read when opened", async () => {
-    renderInWorkspace(<MessageThread requestId="req_017" />, { as: "coordinator" });
+    renderInWorkspace(<MessageThread conversationId="req_017" />, { as: "coordinator" });
     await conversation();
     await waitFor(() => {
       const thread = getDb().threads.find((t) => t.requestId === "req_017");
@@ -166,7 +166,7 @@ describe("MessageThread", () => {
   });
 
   it("shows not found for another unit's conversation", async () => {
-    renderInWorkspace(<MessageThread requestId="req_023" />, { as: "usr_res_diego" });
+    renderInWorkspace(<MessageThread conversationId="req_023" />, { as: "usr_res_diego" });
     expect(
       await screen.findByRole("heading", { name: "Conversation not found" }),
     ).toBeInTheDocument();
@@ -180,7 +180,7 @@ describe("MessageThread", () => {
         { once: true },
       ),
     );
-    const { user } = renderInWorkspace(<MessageThread requestId="req_017" />, {
+    const { user } = renderInWorkspace(<MessageThread conversationId="req_017" />, {
       as: "coordinator",
     });
     expect(await screen.findByRole("alert")).toHaveTextContent("Couldn't load messages");
@@ -189,7 +189,7 @@ describe("MessageThread", () => {
   });
 
   it("renders nothing for the manager", async () => {
-    renderInWorkspace(<MessageThread requestId="req_017" />, { as: "manager" });
+    renderInWorkspace(<MessageThread conversationId="req_017" />, { as: "manager" });
     await screen.findByRole("main");
     expect(screen.queryByRole("region", { name: "Messages" })).not.toBeInTheDocument();
   });
