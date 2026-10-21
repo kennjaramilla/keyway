@@ -40,6 +40,7 @@ const MATRIX: Record<Action, [resident: boolean, coordinator: boolean, manager: 
   "request:cancel": [true, false, false],
   "request:reopen": [true, true, false],
   "vendor:list": [false, true, true],
+  "thread:create": [true, false, false],
   "thread:view": [true, true, false],
   "message:send": [true, true, false],
   "rules:ask": [true, true, true],

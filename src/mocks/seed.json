@@ -2392,6 +2392,34 @@
         "usr_res_jonah": "2026-10-18T20:12:00Z",
         "usr_coord_theo": "2026-10-18T20:12:00Z"
       }
+    },
+    {
+      "id": "thr_028",
+      "requestId": null,
+      "subject": "Guest parking this weekend",
+      "buildingId": "bld_harbor",
+      "residentId": "usr_res_amara",
+      "coordinatorId": "usr_coord_grace",
+      "createdAt": "2026-10-17T15:10:00Z",
+      "lastMessageAt": "2026-10-17T16:02:00Z",
+      "lastReadAt": {
+        "usr_res_amara": "2026-10-17T16:30:00Z",
+        "usr_coord_grace": "2026-10-17T16:02:00Z"
+      }
+    },
+    {
+      "id": "thr_029",
+      "requestId": null,
+      "subject": "Moving a sofa in on Saturday",
+      "buildingId": "bld_linden",
+      "residentId": "usr_res_priya",
+      "coordinatorId": "usr_coord_theo",
+      "createdAt": "2026-10-16T13:00:00Z",
+      "lastMessageAt": "2026-10-16T14:20:00Z",
+      "lastReadAt": {
+        "usr_res_priya": "2026-10-16T15:00:00Z",
+        "usr_coord_theo": "2026-10-16T14:20:00Z"
+      }
     }
   ],
   "messages": [
@@ -2541,6 +2569,34 @@
       "authorId": "usr_res_jonah",
       "body": "Thanks for the update. The lights over the sink still work, so no rush.",
       "createdAt": "2026-10-18T20:12:00Z"
+    },
+    {
+      "id": "msg_022",
+      "threadId": "thr_028",
+      "authorId": "usr_res_amara",
+      "body": "Hi Grace, my parents are visiting Saturday and Sunday. Can they use a guest parking spot?",
+      "createdAt": "2026-10-17T15:10:00Z"
+    },
+    {
+      "id": "msg_023",
+      "threadId": "thr_028",
+      "authorId": "usr_coord_grace",
+      "body": "Yes! Guest spots G1 to G4 are first come, first served. Leave a note with your unit on the dashboard.",
+      "createdAt": "2026-10-17T16:02:00Z"
+    },
+    {
+      "id": "msg_024",
+      "threadId": "thr_029",
+      "authorId": "usr_res_priya",
+      "body": "I'm getting a new sofa delivered Saturday morning. Do I need to book the freight elevator?",
+      "createdAt": "2026-10-16T13:00:00Z"
+    },
+    {
+      "id": "msg_025",
+      "threadId": "thr_029",
+      "authorId": "usr_coord_theo",
+      "body": "Please do. I've held the freight elevator for you from 9 to 11 am. The movers need to pad the walls.",
+      "createdAt": "2026-10-16T14:20:00Z"
     }
   ],
   "ruleDocuments": [

@@ -24,6 +24,7 @@ export const ACTIONS = [
   "request:reopen",
   "vendor:list",
   "thread:view",
+  "thread:create",
   "message:send",
   "rules:ask",
   "rules:view",
@@ -58,6 +59,7 @@ const ROLE_ACTIONS: Record<Role, ReadonlySet<Action>> = {
     "request:cancel",
     "request:reopen",
     "thread:view",
+    "thread:create",
     "message:send",
     "rules:ask",
     "rules:view",
@@ -123,6 +125,7 @@ function inScope(subject: Subject, action: Action, resource: Resource): boolean 
           ownUnit(subject, resource.unitId) && (resource.residentId ?? subject.id) === subject.id
         );
       case "thread:view":
+      case "thread:create":
       case "message:send":
         return (resource.residentId ?? subject.id) === subject.id;
       case "rules:ask":

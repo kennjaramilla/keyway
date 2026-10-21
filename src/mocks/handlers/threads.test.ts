@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   messageSchema,
   threadDetailSchema,
+  threadSchema,
   threadSummaryListSchema,
 } from "@/features/messages/schema";
 import { api } from "@/lib/api-client";
@@ -22,11 +23,14 @@ const getThread = (requestId: string) =>
 const send = (requestId: string, body: unknown) =>
   api.post(`/threads/${requestId}/messages`, messageSchema, body);
 
+const label = (thread: { request: { number: string } | null; subject: string | null }) =>
+  thread.request?.number ?? thread.subject;
+
 describe("thread endpoints", () => {
   it("lists a resident's own threads with unread counts", async () => {
     signInAs("resident");
     const threads = await listThreads();
-    expect(threads.map((thread) => thread.request.number)).toEqual(["KW-1023"]);
+    expect(threads.map(label)).toEqual(["KW-1023", "Guest parking this weekend"]);
     expect(threads[0]?.unreadCount).toBe(1);
     expect(threads[0]?.lastMessage?.authorName).toBeTruthy();
   });
@@ -34,14 +38,14 @@ describe("thread endpoints", () => {
   it("lists only the coordinator's active building, newest activity first", async () => {
     signInAs("coordinator");
     const harbor = await listThreads("bld_harbor");
-    expect(harbor.map((thread) => thread.request.number)).toEqual(["KW-1017", "KW-1023"]);
-    expect(harbor.find((t) => t.request.number === "KW-1017")?.unreadCount).toBe(1);
+    expect(harbor.map(label)).toEqual(["KW-1017", "KW-1023", "Guest parking this weekend"]);
+    expect(harbor.find((t) => label(t) === "KW-1017")?.unreadCount).toBe(1);
 
     // Covered but not active: 404, like any other building-scoped list.
     expect(await status(listThreads("bld_maple"))).toBe(404);
     signInAs("coordinator", "bld_maple");
     const maple = await listThreads("bld_maple");
-    expect(maple.find((t) => t.request.number === "KW-1029")?.unreadCount).toBe(2);
+    expect(maple.find((t) => label(t) === "KW-1029")?.unreadCount).toBe(2);
   });
 
   it("hides uncovered buildings (404) and denies the manager (403)", async () => {
@@ -64,7 +68,7 @@ describe("thread endpoints", () => {
   it("returns a thread's messages oldest first, with participants", async () => {
     signInAs("coordinator");
     const detail = await getThread("req_017");
-    expect(detail.request.number).toBe("KW-1017");
+    expect(detail.request?.number).toBe("KW-1017");
     expect(detail.messages).toHaveLength(5);
     const times = detail.messages.map((message) => message.createdAt);
     expect(times).toEqual([...times].sort());
@@ -122,5 +126,67 @@ describe("thread endpoints", () => {
     await api.post("/threads/req_030/read", z.null()); // no thread yet: still fine
     signInAs("coordinator");
     expect((await listThreads()).find((t) => t.requestId === "req_017")?.unreadCount).toBe(1);
+  });
+});
+
+describe("general chats", () => {
+  const start = (body: unknown) => api.post("/threads", threadSchema, body);
+  const chat = { subject: "Bike storage key", body: "Where do I get a key for the bike room?" };
+
+  it("lets a resident start a chat with their building's coordinator", async () => {
+    signInAs("resident");
+    const thread = await start(chat);
+    expect(thread).toMatchObject({
+      requestId: null,
+      subject: "Bike storage key",
+      buildingId: "bld_harbor",
+      residentId: "usr_res_amara",
+      coordinatorId: "usr_coord_grace",
+    });
+    const detail = await getThread(thread.id);
+    expect(detail.request).toBeNull();
+    expect(detail.subject).toBe("Bike storage key");
+    expect(detail.messages.map((m) => m.body)).toEqual([chat.body]);
+    expect((await listThreads())[0]).toMatchObject({ subject: "Bike storage key", unreadCount: 0 });
+
+    signInAs("coordinator");
+    const inbox = await listThreads("bld_harbor");
+    expect(inbox.find((t) => t.id === thread.id)?.unreadCount).toBe(1);
+    await send(thread.id, { body: "The front desk has them." });
+    signInAs("resident");
+    expect((await listThreads()).find((t) => t.id === thread.id)?.unreadCount).toBe(1);
+  });
+
+  it("validates the subject and message (422) and is resident-only (403)", async () => {
+    signInAs("resident");
+    expect(await status(start({ subject: "Hi", body: "Question" }))).toBe(422);
+    expect(await status(start({ subject: "Bike storage key", body: "  " }))).toBe(422);
+    expect(await status(start({ subject: "x".repeat(81), body: "Question" }))).toBe(422);
+    signInAs("coordinator");
+    expect(await status(start(chat))).toBe(403);
+    signInAs("manager");
+    expect(await status(start(chat))).toBe(403);
+  });
+
+  it("keeps chats inside the resident and the covering coordinators (404)", async () => {
+    signInAs("usr_res_diego");
+    expect(await status(getThread("thr_028"))).toBe(404);
+    expect(await status(send("thr_028", { body: "Hello" }))).toBe(404);
+    signInAs("usr_coord_theo");
+    expect(await status(getThread("thr_028"))).toBe(404);
+    expect((await getThread("thr_029")).subject).toBe("Moving a sofa in on Saturday");
+    signInAs("manager");
+    expect(await status(getThread("thr_028"))).toBe(403);
+    // A request's thread is only reachable by its request id.
+    signInAs("resident");
+    expect(await status(getThread("thr_001"))).toBe(404);
+  });
+
+  it("marks a chat read", async () => {
+    signInAs("resident");
+    const thread = await start(chat);
+    signInAs("coordinator");
+    await api.post(`/threads/${thread.id}/read`, z.null());
+    expect((await listThreads()).find((t) => t.id === thread.id)?.unreadCount).toBe(0);
   });
 });
