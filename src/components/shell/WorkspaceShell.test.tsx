@@ -22,7 +22,7 @@ async function navLinks() {
 
 describe("WorkspaceShell", () => {
   it.each([
-    ["resident", ["Requests", "Messages", "House rules"]],
+    ["resident", ["Requests", "Messages", "House rules", "Billing"]],
     ["coordinator", ["Requests", "Messages", "House rules"]],
     ["manager", ["Dashboard", "Requests", "House rules"]],
   ])("shows the %s only the pages their role can open", async (role, expected) => {

@@ -1,3 +1,4 @@
+import { billingHandlers } from "./billing";
 import { dashboardHandlers } from "./dashboard";
 import { requestHandlers } from "./requests";
 import { ruleHandlers } from "./rules";
@@ -16,4 +17,5 @@ export const handlers = [
   ...vendorHandlers,
   ...dashboardHandlers,
   ...ruleHandlers,
+  ...billingHandlers,
 ];

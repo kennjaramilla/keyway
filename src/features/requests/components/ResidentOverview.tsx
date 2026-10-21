@@ -7,6 +7,7 @@ import {
   CircleDot,
   MessageSquare,
   Plus,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -32,6 +33,7 @@ const ACTION_TONES = {
   primary: "bg-primary-soft text-primary",
   warning: "bg-warning-soft text-warning",
   success: "bg-success-soft text-success",
+  info: "bg-info-soft text-info",
 } as const;
 
 function QuickAction({
@@ -101,7 +103,7 @@ export function ResidentOverview() {
         <h2 id="quick-actions" className="mb-3 text-base font-semibold text-fg">
           Quick actions
         </h2>
-        <ul className="grid grid-cols-3 gap-3 sm:max-w-lg">
+        <ul className="grid grid-cols-2 gap-3 sm:max-w-2xl sm:grid-cols-4">
           {can(user, "request:create") && (
             <QuickAction
               href="/requests/new"
@@ -125,6 +127,9 @@ export function ResidentOverview() {
               label="House rules"
               tone="success"
             />
+          )}
+          {roleCan(user.role, "billing:view") && (
+            <QuickAction href="/billing" icon={<Wallet />} label="Pay rent" tone="info" />
           )}
         </ul>
       </section>

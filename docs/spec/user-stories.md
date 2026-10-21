@@ -149,6 +149,14 @@ As a coordinator, I move a request through its workflow from the detail page.
 
 ---
 
+## 7. Billing (resident)
+
+**7.1 Account summary. P1** Given I'm Amara, when I open Billing, then I see Balance due ($2,536.40), Overdue ($0.00) and Next due, my open charges oldest due first with a text status (Due / Overdue), and my payment history newest first.
+**7.2 Demo payment. P1** When I choose "Pay now", then every open charge is selected, I can untick some and pick a saved method, and the button shows the total ("Pay $86.40"). Paying records one payment with a `PAY-` reference, marks those charges paid, and shows a "Paid $86.40" toast. A declined payment (`?fail=payments`) keeps the dialog open with an error and changes nothing. No card details are collected.
+**7.3 Staff billing overview and damage charges. P2**
+
+---
+
 ## Cypress e2e flows (P0)
 
 | Flow | Story | Signed in as | Gist |

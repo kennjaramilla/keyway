@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { chargeSchema, paymentSchema } from "@/features/billing/schema";
 import { buildingSchema, unitSchema } from "@/features/buildings/schema";
 import { ruleDocumentSchema, rulePassageSchema } from "@/features/house-rules/schema";
 import { messageSchema, threadSchema } from "@/features/messages/schema";
@@ -22,6 +23,8 @@ export const dbSchema = z.object({
   messages: z.array(messageSchema),
   ruleDocuments: z.array(ruleDocumentSchema),
   rulePassages: z.array(rulePassageSchema),
+  charges: z.array(chargeSchema),
+  payments: z.array(paymentSchema),
 });
 export type Db = z.infer<typeof dbSchema>;
 

@@ -45,6 +45,8 @@ const MATRIX: Record<Action, [resident: boolean, coordinator: boolean, manager: 
   "message:send": [true, true, false],
   "rules:ask": [true, true, true],
   "rules:view": [true, true, true],
+  "billing:view": [true, false, false],
+  "billing:pay": [true, false, false],
   "dashboard:view": [false, false, true],
 };
 

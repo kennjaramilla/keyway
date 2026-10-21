@@ -1,6 +1,6 @@
 "use client";
 
-import { Gauge, LayoutList, MessageSquare, ScrollText } from "lucide-react";
+import { Gauge, LayoutList, MessageSquare, ScrollText, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUnreadTotal } from "@/features/messages/hooks/useThreads";
@@ -14,6 +14,7 @@ const ICONS: Record<string, typeof Gauge> = {
   "/requests": LayoutList,
   "/messages": MessageSquare,
   "/house-rules": ScrollText,
+  "/billing": Wallet,
 };
 
 /** Main nav: a column in the dark sidebar on desktop, a fixed bottom tab bar on phones. */

@@ -67,6 +67,8 @@ Legend: ✅ allowed · ❌ denied · *scope* = the condition that must also hold
 | `message:send` | ✅ *own thread* | ✅ *in scope* | ❌ | P0 |
 | `rules:ask` | ✅ *own building* | ✅ *active building* | ✅ *active building* | P0 |
 | `rules:view` (browse passages) | ✅ *own building* | ✅ *active building* | ✅ *active building* | P1 |
+| `billing:view` (own account) | ✅ *own unit* | ❌ | ❌ | P1 |
+| `billing:pay` (demo payment) | ✅ *own unit, own charges* | ❌ | ❌ | P1 |
 | `dashboard:view` | ❌ | ❌ (P2: own buildings) | ✅ | P0 |
 
 ### Tenant-isolation rules (enforced in MSW handlers, mirrored in the UI)

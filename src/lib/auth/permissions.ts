@@ -29,6 +29,8 @@ export const ACTIONS = [
   "rules:ask",
   "rules:view",
   "dashboard:view",
+  "billing:view",
+  "billing:pay",
 ] as const;
 export type Action = (typeof ACTIONS)[number];
 
@@ -63,6 +65,8 @@ const ROLE_ACTIONS: Record<Role, ReadonlySet<Action>> = {
     "message:send",
     "rules:ask",
     "rules:view",
+    "billing:view",
+    "billing:pay",
   ]),
   coordinator: new Set<Action>([
     "session:sign-in",
