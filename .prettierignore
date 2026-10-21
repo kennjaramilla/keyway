@@ -8,3 +8,4 @@ package-lock.json
 cypress/screenshots
 cypress/videos
 docs/spec
+keyway-api

@@ -45,3 +45,6 @@ storybook-static
 cypress/screenshots
 cypress/videos
 *storybook.log
+
+# real API checkout in CI (e2e-real-api)
+/keyway-api

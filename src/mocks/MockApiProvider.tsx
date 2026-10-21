@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { setPassthroughRecovery } from "@/lib/api-client";
 
 const mockingEnabled = process.env.NEXT_PUBLIC_API_MOCKING !== "off";
@@ -74,15 +74,16 @@ export function MockApiProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  if (!ready) {
-    return (
-      <div
-        role="status"
-        className="flex min-h-screen items-center justify-center text-sm text-fg-muted"
-      >
-        Loading Keyway…
-      </div>
-    );
-  }
-  return children;
+  if (!ready) return loading;
+  // Real API: nothing to wait for, but pages still need a boundary to prerender around.
+  return mockingEnabled ? children : <Suspense fallback={loading}>{children}</Suspense>;
 }
+
+const loading = (
+  <div
+    role="status"
+    className="flex min-h-screen items-center justify-center text-sm text-fg-muted"
+  >
+    Loading Keyway…
+  </div>
+);
