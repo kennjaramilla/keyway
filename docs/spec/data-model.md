@@ -177,7 +177,7 @@ The demo error toggle: `?fail=messages` (or a dev-only setting) makes the next `
 - **Avg time to resolve**: mean of `resolvedAt − createdAt` (hours, displayed as "2.1 days") for requests resolved in the last 30 days, per building and overall.
 - **Overdue by urgency**: count of open requests where `now > createdAt + slaHours[urgency]`, grouped by urgency.
 - **Coordinator workload**: open requests per `coordinatorId`, split by status.
-- **Week on week**: requests created (and resolved) in the last 7 days vs the 7 days before; the 7-day series counts per building-local day.
+- **Period** (`?days=7|14|30`, default 7): requests created (and resolved) in the last N days vs the N days before; the N-day series counts per building-local day.
 - **On-time performance**: over open requests plus those resolved in the last 30 days. Met = resolved by `dueAt`, or open and less than halfway to it; at risk = open and past halfway; breached = resolved late or overdue. On-time rate = (met + at risk) / total.
 - **Building health**: open, overdue and on-time rate per building.
 - **Vendor status**: per vendor from its open requests: on site (any in progress), scheduled, assigned, or available.

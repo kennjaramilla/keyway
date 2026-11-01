@@ -3,9 +3,11 @@ import {
   averageResolveHours,
   computeDashboard,
   formatChange,
+  periodLabel,
   formatDuration,
   onTimeRate,
 } from "./metrics";
+import { dashboardQuerySchema } from "./schema";
 
 const NOW = Date.parse("2026-10-19T14:00:00Z");
 
@@ -57,7 +59,13 @@ describe("dashboard metrics", () => {
   });
 
   it("compares this week with last week and lists the last 7 days", () => {
-    expect(dashboard.weekly).toEqual({ opened: 20, openedPrev: 3, resolved: 2, resolvedPrev: 4 });
+    expect(dashboard.period).toEqual({
+      days: 7,
+      opened: 20,
+      openedPrev: 3,
+      resolved: 2,
+      resolvedPrev: 4,
+    });
     expect(dashboard.daily.map((day) => day.date)).toEqual([
       "2026-10-13",
       "2026-10-14",
@@ -68,6 +76,33 @@ describe("dashboard metrics", () => {
       "2026-10-19",
     ]);
     expect(dashboard.daily.reduce((sum, day) => sum + day.opened, 0)).toBe(20);
+  });
+
+  it("widens the period and the daily series to the chosen range", () => {
+    const fortnight = computeDashboard(
+      db.requests,
+      db.buildings,
+      coordinators,
+      new Date(NOW),
+      [],
+      14,
+    );
+    expect(fortnight.period).toEqual({
+      days: 14,
+      opened: 23,
+      openedPrev: 6,
+      resolved: 6,
+      resolvedPrev: 4,
+    });
+    expect(fortnight.daily).toHaveLength(14);
+    expect(fortnight.daily[0]?.date).toBe("2026-10-06");
+    expect(fortnight.daily.at(-1)?.date).toBe("2026-10-19");
+    const month = computeDashboard(db.requests, db.buildings, coordinators, new Date(NOW), [], 30);
+    expect(month.daily).toHaveLength(30);
+    expect(month.daily.reduce((sum, day) => sum + day.opened, 0)).toBe(month.period.opened);
+    // Totals and on-time work don't depend on the range.
+    expect(month.totals).toEqual(dashboard.totals);
+    expect(month.onTime).toEqual(dashboard.onTime);
   });
 
   it("splits tracked work into met, at risk and breached", () => {
@@ -98,6 +133,17 @@ describe("dashboard metrics", () => {
     expect(formatChange(5, 2)).toBe("+3 vs last week");
     expect(formatChange(2, 4)).toBe("−2 vs last week");
     expect(formatChange(3, 3)).toBe("Same as last week");
+    expect(formatChange(5, 2, 14)).toBe("+3 vs the previous 14 days");
+    expect(formatChange(3, 3, 30)).toBe("Same as the previous 30 days");
+    expect(periodLabel(7)).toBe("this week");
+    expect(periodLabel(30)).toBe("in the last 30 days");
+  });
+
+  it("accepts only the offered ranges, defaulting to 7 days", () => {
+    expect(dashboardQuerySchema.parse({})).toEqual({ days: 7 });
+    expect(dashboardQuerySchema.parse({ days: "14" })).toEqual({ days: 14 });
+    expect(dashboardQuerySchema.safeParse({ days: "5" }).success).toBe(false);
+    expect(dashboardQuerySchema.safeParse({ days: "" }).success).toBe(false);
   });
 
   it("formats durations", () => {

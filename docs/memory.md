@@ -44,9 +44,11 @@ Status and hand-off notes. Update this file at the end of each work session.
 - Tests: handler tests split per handler file, Cypress axe runs in light and dark (serious/critical only), dead code removed (tabs, `api.patch`, unused exports).
 - Docs: `PRODUCTION-READINESS.md`, `docs/application-flow.md`, `docs/code-tour.md`.
 
+- Dashboard date range (5.2): `?days=7|14|30` on `GET /api/dashboard` (shared `dashboardQuerySchema`, 422 otherwise), `weekly` became `period` in the contract, `RangePicker` (radio group) keeps the range in the URL via `useDashboardRange`, long ranges label about seven chart ticks.
+
 **Next:**
 
-- Cut P1/P2 stories: manager vendor reassignment UI and its test (2.9, `can()` already allows it), manager reassigns a building's coordinator (1.5), dashboard date range (5.2). The queue already renders as cards below `md` (6.4).
+- Cut P1/P2 stories: manager vendor reassignment UI and its test (2.9, `can()` already allows it), manager reassigns a building's coordinator (1.5). The queue already renders as cards below `md` (6.4).
 - Hardening: a full Content-Security-Policy with nonces (needs the inline theme script and MSW worker handled), a signed server session, a shared store for the assistant's rate limit, code-splitting MSW out of the production bundle, bundle and Web Vitals budgets, plugging error tracking into `reportError`.
 
 ## How to resume

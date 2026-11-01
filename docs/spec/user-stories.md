@@ -122,7 +122,10 @@ As a coordinator, I move a request through its workflow from the detail page.
 - With seed data: Open is Harbor 7, Maple 7, Linden 6. Overdue is high 2, normal 1, low 1. Workload is Grace 14, Theo 6.
 - Clicking a building bar or table row opens the requests list for that building (P1).
 
-**5.2 Date range filter. P1** · **5.3 Coordinator dashboard (own buildings). P2** · **5.4 CSV export. P2**
+**5.2 Date range filter. P1**
+- Given I'm the manager, when I pick 7, 14 or 30 days, then the "new" and "resolved" KPIs, their trends (compared with the same number of days before) and the volume chart cover that range, and the URL keeps it (`?days=14`) so the view can be shared. Open, overdue, on-time and 30-day resolve times don't change with the range. Any other `days` is a 422.
+
+**5.3 Coordinator dashboard (own buildings). P2** · **5.4 CSV export. P2**
 
 ---
 
