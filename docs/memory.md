@@ -46,6 +46,8 @@ Status and hand-off notes. Update this file at the end of each work session.
 
 - Dashboard date range (5.2): `?days=7|14|30` on `GET /api/dashboard` (shared `dashboardQuerySchema`, 422 otherwise), `weekly` became `period` in the contract, `RangePicker` (radio group) keeps the range in the URL via `useDashboardRange`, long ranges label about seven chart ticks.
 
+- Demo mode (ADR 0005): `NEXT_PUBLIC_DEMO_MODE=off` hides the people picker (SSO panel via `NEXT_PUBLIC_SSO_URL` instead) and makes MSW 404 `GET /demo/people` and `POST /session`; on by default, picker badged "Demo accounts · fake data".
+
 **Next:**
 
 - Cut P1/P2 stories: manager vendor reassignment UI and its test (2.9, `can()` already allows it), manager reassigns a building's coordinator (1.5). The queue already renders as cards below `md` (6.4).

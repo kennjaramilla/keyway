@@ -71,4 +71,32 @@ describe("SignInScreen", () => {
     await user.click(await screen.findByRole("button", { name: /Amara Okafor/ }));
     expect(await screen.findByText(/Couldn't sign in/)).toBeInTheDocument();
   });
+
+  it("labels the people picker as demo accounts with fake data", async () => {
+    renderWithProviders(<SignInScreen />);
+    expect(await screen.findByText("Demo accounts · fake data")).toBeInTheDocument();
+  });
+
+  describe("with demo mode off", () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    it("hides the people picker and points to single sign-on", () => {
+      vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "off");
+      vi.stubEnv("NEXT_PUBLIC_SSO_URL", "https://login.example.com/keyway");
+      renderWithProviders(<SignInScreen />);
+      expect(screen.queryByText("Demo accounts · fake data")).not.toBeInTheDocument();
+      expect(screen.queryByRole("region", { name: "Resident" })).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Continue with single sign-on" })).toHaveAttribute(
+        "href",
+        "https://login.example.com/keyway",
+      );
+    });
+
+    it("says so when single sign-on isn't configured", () => {
+      vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "off");
+      renderWithProviders(<SignInScreen />);
+      expect(screen.getByRole("status")).toHaveTextContent("Single sign-on isn't configured");
+      expect(screen.queryByRole("link", { name: /single sign-on/ })).not.toBeInTheDocument();
+    });
+  });
 });

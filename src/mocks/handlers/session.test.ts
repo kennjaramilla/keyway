@@ -27,6 +27,20 @@ describe("session endpoints", () => {
     expect(readSessionCookie()).toBeNull();
   });
 
+  it("refuses the demo shortcuts when demo mode is off, but keeps existing sessions", async () => {
+    signInAs("manager");
+    vi.stubEnv("NEXT_PUBLIC_DEMO_MODE", "off");
+    try {
+      expect(await status(api.get("/demo/people", demoPeopleSchema))).toBe(404);
+      expect(await status(api.post("/session", sessionSchema, { userId: "usr_coord_grace" }))).toBe(
+        404,
+      );
+      expect((await api.get("/session", sessionSchema)).user.role).toBe("manager");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("rejects unknown people and malformed bodies", async () => {
     expect(await status(api.post("/session", sessionSchema, { userId: "usr_nobody" }))).toBe(404);
     expect(await status(api.post("/session", sessionSchema, {}))).toBe(422);

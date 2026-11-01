@@ -29,6 +29,8 @@ npm run dev            # http://localhost:3000
 
 There's no backend. A Mock Service Worker API with a seeded in-browser database answers `/api/*` (see `docs/decisions/0001-msw-mock-api.md`). Use **Reset demo data** in the user menu, or add `?reset` to any URL, to start over.
 
+The people picker on the sign-in page is demo mode. Build with `NEXT_PUBLIC_DEMO_MODE=off` to hide it and refuse the demo sign-in endpoints; the page then offers single sign-on via `NEXT_PUBLIC_SSO_URL` (ADR [0005](docs/decisions/0005-demo-mode.md)).
+
 ## Run it against the real API
 
 Keyway ships with an in-browser mock API. [keyway-api](https://github.com/kennjaramilla/keyway-api) implements the same contract with NestJS and MongoDB:
