@@ -6,6 +6,7 @@ import {
   type SessionUser,
 } from "@/features/session/schema";
 import { clearSessionCookie, writeSessionCookie } from "@/lib/auth/session-cookie";
+import { isDemoMode } from "@/lib/demo-mode";
 import { getDb, resetDb } from "../db";
 import { API, deny, notFound, sessionUser, unauthorized, validationError } from "./utils";
 
@@ -19,8 +20,9 @@ function sessionPayload(user: SessionUser) {
 }
 
 export const sessionHandlers = [
-  // Public: who can be signed in as on the demo sign-in page.
+  // Public: who can be signed in as on the demo sign-in page. Gone when demo mode is off.
   http.get(`${API}/demo/people`, () => {
+    if (!isDemoMode()) return notFound();
     const { users, buildings, units } = getDb();
     const buildingName = (id: string) => buildings.find((b) => b.id === id)?.name ?? id;
     const people: DemoPerson[] = users.map((user) => {
@@ -44,7 +46,9 @@ export const sessionHandlers = [
     return user ? HttpResponse.json(sessionPayload(user)) : unauthorized();
   }),
 
+  // Signing in as someone by id is the demo shortcut; without demo mode an identity provider owns this.
   http.post(`${API}/session`, async ({ request }) => {
+    if (!isDemoMode()) return notFound();
     const parsed = signInSchema.safeParse(await request.json().catch(() => null));
     if (!parsed.success) return validationError(parsed.error);
     const user = getDb().users.find((candidate) => candidate.id === parsed.data.userId);

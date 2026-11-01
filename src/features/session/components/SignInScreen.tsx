@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronRight, ClipboardList, Gauge, Wrench } from "lucide-react";
+import { ChevronRight, ClipboardList, FlaskConical, Gauge, KeyRound, Wrench } from "lucide-react";
 import { BrandMark } from "@/components/shell/BrandMark";
 import { Avatar } from "@/components/ui/avatar";
 import { ErrorState } from "@/components/ui/error-state";
 import { SkeletonList } from "@/components/ui/skeleton";
 import { ROLE_LABELS, ROLES } from "@/lib/auth/demo-users";
+import { isDemoMode, ssoUrl } from "@/lib/demo-mode";
 import { useDemoPeople, useSignIn } from "../hooks";
 
 const ROLE_HINTS = {
@@ -15,9 +16,6 @@ const ROLE_HINTS = {
 } as const;
 
 export function SignInScreen() {
-  const people = useDemoPeople();
-  const signIn = useSignIn();
-
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       <aside
@@ -59,61 +57,108 @@ export function SignInScreen() {
       </aside>
 
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10 sm:px-10 sm:py-16 lg:justify-center">
-        <header className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold text-fg">Sign in to Keyway</h1>
-          <p className="text-fg-muted">
-            Choose a person to see the portal from their point of view.
-          </p>
-        </header>
-
-        {people.isPending && <SkeletonList rows={4} label="Loading people" />}
-        {people.isError && (
-          <ErrorState onRetry={() => people.refetch()} retrying={people.isRefetching} />
-        )}
-        {signIn.isError && (
-          <p role="alert" className="text-sm font-medium text-danger">
-            Couldn&apos;t sign in. Please try again.
-          </p>
-        )}
-
-        {people.data &&
-          ROLES.map((role) => {
-            const group = people.data.filter((person) => person.role === role);
-            if (group.length === 0) return null;
-            return (
-              <section key={role} aria-labelledby={`role-${role}`} className="flex flex-col gap-2">
-                <div>
-                  <h2 id={`role-${role}`} className="text-base font-semibold text-fg">
-                    {ROLE_LABELS[role]}
-                  </h2>
-                  <p className="text-sm text-fg-muted">{ROLE_HINTS[role]}</p>
-                </div>
-                <ul className="grid gap-2 sm:grid-cols-2">
-                  {group.map((person) => (
-                    <li key={person.id}>
-                      <button
-                        type="button"
-                        onClick={() => signIn.mutate(person.id)}
-                        disabled={signIn.isPending}
-                        aria-busy={
-                          signIn.isPending && signIn.variables === person.id ? true : undefined
-                        }
-                        className="flex w-full items-center gap-3 rounded-lg border border-border bg-surface p-3 text-left shadow-sm transition-colors hover:border-primary hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
-                      >
-                        <Avatar name={person.name} decorative />
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="font-medium text-fg">{person.name}</span>
-                          <span className="truncate text-sm text-fg-muted">{person.context}</span>
-                        </span>
-                        <ChevronRight aria-hidden className="size-4 text-fg-subtle" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
+        {isDemoMode() ? <DemoAccounts /> : <SingleSignOn />}
       </main>
     </div>
+  );
+}
+
+/** Production sign-in belongs to the organisation's identity provider, not this page. */
+function SingleSignOn() {
+  const url = ssoUrl();
+  return (
+    <>
+      <header className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold text-fg">Sign in to Keyway</h1>
+        <p className="text-fg-muted">Use your organisation&apos;s account.</p>
+      </header>
+      {url ? (
+        <a
+          href={url}
+          className="inline-flex h-11 w-fit items-center gap-2 rounded-lg bg-primary px-5 font-medium text-primary-fg hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          <KeyRound aria-hidden className="size-4" />
+          Continue with single sign-on
+        </a>
+      ) : (
+        <p
+          role="status"
+          className="rounded-lg border border-border bg-surface p-4 text-sm text-fg-muted"
+        >
+          Single sign-on isn&apos;t configured for this environment. Ask your administrator for
+          access.
+        </p>
+      )}
+    </>
+  );
+}
+
+/** Demo mode: pick a seeded person and see the portal as them. */
+function DemoAccounts() {
+  const people = useDemoPeople();
+  const signIn = useSignIn();
+
+  return (
+    <>
+      <header className="flex flex-col gap-2">
+        <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary">
+          <FlaskConical aria-hidden className="size-3.5" />
+          Demo accounts · fake data
+        </p>
+        <h1 className="text-2xl font-semibold text-fg">Sign in to Keyway</h1>
+        <p className="text-fg-muted">
+          Choose a person to see the portal from their point of view. Everything here is made up and
+          resets on request.
+        </p>
+      </header>
+
+      {people.isPending && <SkeletonList rows={4} label="Loading people" />}
+      {people.isError && (
+        <ErrorState onRetry={() => people.refetch()} retrying={people.isRefetching} />
+      )}
+      {signIn.isError && (
+        <p role="alert" className="text-sm font-medium text-danger">
+          Couldn&apos;t sign in. Please try again.
+        </p>
+      )}
+
+      {people.data &&
+        ROLES.map((role) => {
+          const group = people.data.filter((person) => person.role === role);
+          if (group.length === 0) return null;
+          return (
+            <section key={role} aria-labelledby={`role-${role}`} className="flex flex-col gap-2">
+              <div>
+                <h2 id={`role-${role}`} className="text-base font-semibold text-fg">
+                  {ROLE_LABELS[role]}
+                </h2>
+                <p className="text-sm text-fg-muted">{ROLE_HINTS[role]}</p>
+              </div>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {group.map((person) => (
+                  <li key={person.id}>
+                    <button
+                      type="button"
+                      onClick={() => signIn.mutate(person.id)}
+                      disabled={signIn.isPending}
+                      aria-busy={
+                        signIn.isPending && signIn.variables === person.id ? true : undefined
+                      }
+                      className="flex w-full items-center gap-3 rounded-lg border border-border bg-surface p-3 text-left shadow-sm transition-colors hover:border-primary hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60"
+                    >
+                      <Avatar name={person.name} decorative />
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="font-medium text-fg">{person.name}</span>
+                        <span className="truncate text-sm text-fg-muted">{person.context}</span>
+                      </span>
+                      <ChevronRight aria-hidden className="size-4 text-fg-subtle" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+    </>
   );
 }

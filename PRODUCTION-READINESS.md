@@ -59,3 +59,7 @@ Tests catch what we thought of; production shows the rest. Next I'd add:
 - Web Vitals (LCP, INP, CLS) reported from `useReportWebVitals`, with alerts on regressions
 - Basic product analytics on the critical flows from phase 1, so we know they're used the way we think
 - A full Content-Security-Policy with nonces, once the mock worker is out of the production bundle
+
+## Sign-in
+
+The people picker is demo mode, switched off with `NEXT_PUBLIC_DEMO_MODE=off` (ADR 0005), which also makes the mock API refuse the demo sign-in endpoints. Before real users: an OIDC identity provider behind "Continue with single sign-on", a signed httpOnly server session instead of the readable role cookie, and the same demo switch in keyway-api.
