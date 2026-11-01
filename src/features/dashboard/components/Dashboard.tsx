@@ -15,7 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OPEN_STATUSES, STATUS_LABELS, URGENCY_LABELS } from "@/features/requests/schema";
 import { cn } from "@/lib/cn";
 import { useDashboard } from "../hooks/useDashboard";
-import { formatChange, formatDuration, onTimeRate } from "../metrics";
+import { formatChange, formatDuration, onTimeRate, periodLabel } from "../metrics";
+import type { DashboardRange } from "../schema";
 import type { Dashboard as DashboardData } from "../schema";
 import { ChartPanel } from "./ChartPanel";
 import { DonutChart } from "./DonutChart";
@@ -78,15 +79,26 @@ function Kpi({
 }
 
 /** Direction of a week-on-week change; `upIsGood` colours the arrow (the text says the same). */
-function trendOf(current: number, previous: number, upIsGood?: boolean): Trend {
+function trendOf(
+  current: number,
+  previous: number,
+  days: DashboardRange,
+  upIsGood?: boolean,
+): Trend {
   const direction = current > previous ? "up" : current < previous ? "down" : "flat";
   const good =
     upIsGood === undefined || direction === "flat" ? undefined : (direction === "up") === upIsGood;
-  return { text: formatChange(current, previous), direction, good };
+  return { text: formatChange(current, previous, days), direction, good };
 }
 
-const weekday = (date: string) =>
-  new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+/** "Mon" for a week, "Oct 6" for longer ranges. */
+const dayLabel = (date: string, days: DashboardRange) =>
+  new Date(`${date}T12:00:00Z`).toLocaleDateString(
+    "en-US",
+    days === 7
+      ? { weekday: "short", timeZone: "UTC" }
+      : { month: "short", day: "numeric", timeZone: "UTC" },
+  );
 
 function DashboardSkeleton() {
   return (
@@ -105,8 +117,8 @@ function DashboardSkeleton() {
 }
 
 /** Portfolio dashboard for the property manager. Numbers come from GET /api/dashboard. */
-export function Dashboard() {
-  const dashboard = useDashboard();
+export function Dashboard({ days = 7 }: { days?: DashboardRange }) {
+  const dashboard = useDashboard(days);
 
   if (dashboard.isPending) return <DashboardSkeleton />;
   if (dashboard.isError) {
@@ -132,7 +144,8 @@ export function Dashboard() {
 
 function DashboardPanels({ data }: { data: DashboardData }) {
   const { totals, openByBuilding, resolveTimeByBuilding, overdueByUrgency, workload } = data;
-  const { weekly, daily, onTime } = data;
+  const { period, daily, onTime } = data;
+  const days = period.days;
   const busiest = [...openByBuilding].sort((a, b) => b.open - a.open)[0];
   const heaviest = [...workload].sort((a, b) => b.open - a.open)[0];
   const rate = onTimeRate(onTime);
@@ -152,17 +165,17 @@ function DashboardPanels({ data }: { data: DashboardData }) {
           hint="Across all buildings"
           icon={Inbox}
           trend={{
-            ...trendOf(weekly.opened, weekly.openedPrev),
-            text: `${weekly.opened} new this week (${formatChange(weekly.opened, weekly.openedPrev)})`,
+            ...trendOf(period.opened, period.openedPrev, days),
+            text: `${period.opened} new ${periodLabel(days)} (${formatChange(period.opened, period.openedPrev, days)})`,
           }}
         />
         <Kpi
-          label="Resolved this week"
-          value={String(weekly.resolved)}
-          hint="In the last 7 days"
+          label={days === 7 ? "Resolved this week" : `Resolved, last ${days} days`}
+          value={String(period.resolved)}
+          hint={`In the last ${days} days`}
           icon={CheckCircle2}
           tone="success"
-          trend={trendOf(weekly.resolved, weekly.resolvedPrev, true)}
+          trend={trendOf(period.resolved, period.resolvedPrev, days, true)}
         />
         <Kpi
           label="On-time rate"
@@ -182,22 +195,22 @@ function DashboardPanels({ data }: { data: DashboardData }) {
       <div className="grid gap-6 lg:grid-cols-3">
         <ChartPanel
           className="lg:col-span-2"
-          title="Request volume, last 7 days"
-          summary={`${plural(weekly.opened, "request")} opened and ${weekly.resolved} resolved this week.`}
+          title={`Request volume, last ${days} days`}
+          summary={`${plural(period.opened, "request")} opened and ${period.resolved} resolved ${periodLabel(days)}.`}
           chart={
             <TrendChart
               points={daily.map((day) => ({
-                label: weekday(day.date),
+                label: dayLabel(day.date, days),
                 opened: day.opened,
                 resolved: day.resolved,
               }))}
             />
           }
           table={{
-            columns: ["Day", "Opened", "Resolved"],
+            columns: [days === 7 ? "Day" : "Date", "Opened", "Resolved"],
             rows: daily.map((day) => ({
               key: day.date,
-              cells: [weekday(day.date), day.opened, day.resolved],
+              cells: [dayLabel(day.date, days), day.opened, day.resolved],
             })),
           }}
         />

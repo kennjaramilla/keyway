@@ -49,6 +49,17 @@ describe("Dashboard", () => {
     expect(within(table).getAllByRole("row")).toHaveLength(8);
   });
 
+  it("shows a 30-day range with dates and a matching table", async () => {
+    const { user } = renderInWorkspace(<Dashboard days={30} />, { as: "manager" });
+    await screen.findByText("Open requests");
+    expect(screen.getByText("Resolved, last 30 days").nextSibling).toHaveTextContent(/^\d+$/);
+    const volume = panel("Request volume, last 30 days");
+    await user.click(within(volume).getByRole("button", { name: "Show table" }));
+    const table = within(volume).getByRole("table", { name: "Request volume, last 30 days" });
+    expect(within(table).getAllByRole("row")).toHaveLength(31);
+    expect(within(table).getByRole("columnheader", { name: "Date" })).toBeInTheDocument();
+  });
+
   it("switches a chart to an accessible table and back", async () => {
     const { user } = renderInWorkspace(<Dashboard />, { as: "manager" });
     await screen.findByText("Open requests");
@@ -78,7 +89,7 @@ describe("Dashboard", () => {
           resolveTimeByBuilding: [],
           overdueByUrgency: [],
           workload: [],
-          weekly: { opened: 0, openedPrev: 0, resolved: 0, resolvedPrev: 0 },
+          period: { days: 7, opened: 0, openedPrev: 0, resolved: 0, resolvedPrev: 0 },
           daily: [],
           onTime: { met: 0, atRisk: 0, breached: 0 },
           buildingHealth: [],

@@ -35,6 +35,7 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
   const resolved = points.map((point, index) => [x(index), y(point.resolved)] as [number, number]);
   const baseline = y(0);
   const ticks = [0, 1, 2, 3, 4].map((step) => (top / 4) * step);
+  const labelEvery = Math.ceil(points.length / 7);
 
   return (
     <div className="grid gap-3">
@@ -98,23 +99,26 @@ export function TrendChart({ points }: { points: TrendPoint[] }) {
             key={index}
             cx={cx}
             cy={cy}
-            r="3.5"
+            r={points.length > 14 ? 2.5 : 3.5}
             fill="var(--surface)"
             stroke="var(--chart-1)"
             strokeWidth="2"
           />
         ))}
-        {points.map((point, index) => (
-          <text
-            key={point.label}
-            x={x(index)}
-            y={HEIGHT - 8}
-            textAnchor="middle"
-            className="fill-fg-subtle text-[11px]"
-          >
-            {point.label}
-          </text>
-        ))}
+        {points.map((point, index) =>
+          // Long ranges label about a week's worth of ticks, counted back from today.
+          (points.length - 1 - index) % labelEvery !== 0 ? null : (
+            <text
+              key={index}
+              x={x(index)}
+              y={HEIGHT - 8}
+              textAnchor="middle"
+              className="fill-fg-subtle text-[11px]"
+            >
+              {point.label}
+            </text>
+          ),
+        )}
       </svg>
     </div>
   );

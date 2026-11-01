@@ -1,7 +1,10 @@
 import { api } from "@/lib/api-client";
-import { dashboardSchema } from "./schema";
+import { dashboardSchema, type DashboardRange } from "./schema";
 
-export const dashboardKeys = { all: ["dashboard"] as const };
+export const dashboardKeys = {
+  all: ["dashboard"] as const,
+  range: (days: DashboardRange) => ["dashboard", days] as const,
+};
 
-export const fetchDashboard = (signal?: AbortSignal) =>
-  api.get("/dashboard", dashboardSchema, { signal });
+export const fetchDashboard = (days: DashboardRange, signal?: AbortSignal) =>
+  api.get(`/dashboard?days=${days}`, dashboardSchema, { signal });

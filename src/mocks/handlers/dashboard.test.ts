@@ -28,4 +28,19 @@ describe("GET /api/dashboard", () => {
     signInAs("resident");
     expect(await status(api.get("/dashboard", dashboardSchema))).toBe(403);
   });
+
+  it("widens the period and daily series to ?days, and rejects other ranges", async () => {
+    signInAs("manager");
+    const week = await api.get("/dashboard", dashboardSchema);
+    expect(week.period.days).toBe(7);
+    expect(week.daily).toHaveLength(7);
+    const month = await api.get("/dashboard?days=30", dashboardSchema);
+    expect(month.period.days).toBe(30);
+    expect(month.daily).toHaveLength(30);
+    expect(month.totals).toEqual(week.totals);
+    expect(await status(api.get("/dashboard?days=5", dashboardSchema))).toBe(422);
+
+    signInAs("resident");
+    expect(await status(api.get("/dashboard?days=5", dashboardSchema))).toBe(403);
+  });
 });

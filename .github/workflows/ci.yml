@@ -83,7 +83,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mongo:
-        image: mongo:8
+        # MongoDB 8.x exits on the runners' Linux 6.19 kernel (SERVER-121912); 7.0 is unaffected.
+        image: mongo:7.0
         ports: ["27017:27017"]
     env:
       KEYWAY_API_URL: http://localhost:4000
