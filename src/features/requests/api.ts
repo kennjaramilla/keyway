@@ -40,7 +40,7 @@ export const fetchVendors = (buildingId: string, signal?: AbortSignal) =>
 /** Body for each workflow action (POST /requests/:id/<action>). */
 export type WorkflowInput =
   | { action: "triage"; body: { category?: string; urgency?: string; note?: string } }
-  | { action: "assign"; body: { vendorId: string } }
+  | { action: "assign"; body: { vendorId: string; reason?: string } }
   | { action: "schedule"; body: VisitWindow }
   | { action: "start"; body?: undefined }
   | { action: "resolve"; body: { resolutionNote: string } }

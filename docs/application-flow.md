@@ -73,15 +73,15 @@ flowchart TD
 
 ## Roles and permissions (summary)
 
-| Action                           | Resident     | Coordinator                 | Manager                     |
-| -------------------------------- | ------------ | --------------------------- | --------------------------- |
-| List / view requests             | Own unit     | Active building             | Any building                |
-| Create a request                 | Own unit     | No                          | No                          |
-| Triage, schedule, start, resolve | No           | Covered buildings           | No                          |
-| Assign a vendor                  | No           | Covered buildings           | Yes (UI not built yet, 2.9) |
-| Message on a request             | Own requests | Covered buildings           | No                          |
-| Ask the house rules              | Own building | Covered buildings           | Any building                |
-| Switch building                  | No           | If they cover more than one | Yes                         |
-| Dashboard                        | No           | No                          | Yes                         |
+| Action                           | Resident     | Coordinator                 | Manager      |
+| -------------------------------- | ------------ | --------------------------- | ------------ |
+| List / view requests             | Own unit     | Active building             | Any building |
+| Create a request                 | Own unit     | No                          | No           |
+| Triage, schedule, start, resolve | No           | Covered buildings           | No           |
+| Assign or change a vendor        | No           | Covered buildings           | Yes          |
+| Message on a request             | Own requests | Covered buildings           | No           |
+| Ask the house rules              | Own building | Covered buildings           | Any building |
+| Switch building                  | No           | If they cover more than one | Yes          |
+| Dashboard                        | No           | No                          | Yes          |
 
 The full matrix and its tests: `docs/spec/product-spec.md` and `src/lib/auth/permissions.test.ts`.

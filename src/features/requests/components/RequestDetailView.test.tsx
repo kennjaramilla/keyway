@@ -105,7 +105,7 @@ describe("RequestDetailView", () => {
     ["req_030", ["Triage"]], // new
     ["req_012", ["Assign vendor", "Schedule visit"]], // triaged, no vendor
     ["req_023", ["Change vendor", "Reschedule", "Mark in progress"]], // scheduled
-    ["req_017", ["Resolve"]], // in progress
+    ["req_017", ["Change vendor", "Resolve"]], // in progress
   ])("offers only the next valid steps for %s", async (id, labels) => {
     await openDetail(id);
     expect(
@@ -139,6 +139,32 @@ describe("RequestDetailView", () => {
     await waitFor(() => expect(timelineItems().at(-1)).toHaveTextContent("Resolved → In progress"));
     expect(timelineItems().at(-1)).toHaveTextContent("Buzzing is back.");
     expect(screen.queryByText("Resolved", { selector: "dt" })).not.toBeInTheDocument();
+  });
+
+  it("lets a manager change the vendor with a reason (2.9)", async () => {
+    const { user } = await openDetail("req_023", "manager");
+    await user.click(screen.getByRole("button", { name: "Change vendor" }));
+    const dialog = await screen.findByRole("dialog", { name: "Change the vendor on KW-1023" });
+    expect(await within(dialog).findByRole("radio", { checked: true })).toHaveAccessibleName(
+      /Corner Appliance Repair/,
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Change vendor" }));
+    expect(await within(dialog).findByText(/already assigned/)).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("radio", { name: /Plumb & Level/ }));
+    await user.click(within(dialog).getByRole("button", { name: "Change vendor" }));
+    expect(await within(dialog).findByText(/Say why the vendor is changing/)).toBeInTheDocument();
+
+    await user.type(within(dialog).getByLabelText(/Why change vendor/), "Corner is booked out.");
+    await user.click(within(dialog).getByRole("button", { name: "Change vendor" }));
+    expect(await screen.findByText("KW-1023 assigned to a vendor")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(timelineItems().at(-1)).toHaveTextContent(
+        "Corner Appliance Repair → Plumb & Level Handyman",
+      ),
+    );
+    expect(timelineItems().at(-1)).toHaveTextContent("Corner is booked out.");
+    expect(screen.getByText("Scheduled", { selector: "span" })).toBeInTheDocument();
   });
 
   it("works KW-1030 from new to resolved", async () => {
