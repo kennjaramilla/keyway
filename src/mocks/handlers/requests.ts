@@ -1,11 +1,13 @@
 import { http, HttpResponse } from "msw";
 import {
   assignSchema,
+  canChangeVendor,
   canStillReopen,
   cancelSchema,
   makeRequestCreateSchema,
   makeScheduleSchema,
   nextStatus,
+  reassignErrors,
   reopenSchema,
   resolveSchema,
   triageSchema,
@@ -195,27 +197,27 @@ export const requestHandlers = [
         );
       }
       case "assign": {
-        if (found.status !== "triaged" && found.status !== "scheduled") {
-          return invalidTransition(found, "assigned");
-        }
+        if (!canChangeVendor(found.status)) return invalidTransition(found, "assigned");
         const parsed = assignSchema.safeParse(body);
         if (!parsed.success) return validationError(parsed.error);
         const vendor = db.vendors.find(
           (item) => item.id === parsed.data.vendorId && item.buildingIds.includes(found.buildingId),
         );
-        if (!vendor) {
-          return problem(422, "Validation failed", "Some fields need attention.", {
-            errors: { vendorId: ["Choose a vendor who serves this building."] },
-          });
+        const errors = vendor
+          ? reassignErrors(found.vendorId, parsed.data)
+          : { vendorId: ["Choose a vendor who serves this building."] };
+        if (!vendor || errors) {
+          return problem(422, "Validation failed", "Some fields need attention.", { errors });
         }
-        return HttpResponse.json(
-          record(
-            found,
-            { type: "vendor_assigned", actorId: user.id, meta: { vendorId: vendor.id } },
-            found.status,
-            { vendorId: vendor.id },
-          ),
-        );
+        const event = found.vendorId
+          ? {
+              type: "vendor_reassigned" as const,
+              actorId: user.id,
+              note: parsed.data.reason ?? null,
+              meta: { vendorId: vendor.id, fromVendorId: found.vendorId },
+            }
+          : { type: "vendor_assigned" as const, actorId: user.id, meta: { vendorId: vendor.id } };
+        return HttpResponse.json(record(found, event, found.status, { vendorId: vendor.id }));
       }
       case "schedule": {
         const next = to("request:schedule");

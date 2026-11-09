@@ -6,6 +6,7 @@ const EVENT_LABELS: Record<TimelineEvent["type"], string> = {
   created: "Request submitted",
   triaged: "Triaged",
   vendor_assigned: "Vendor assigned",
+  vendor_reassigned: "Vendor changed",
   scheduled: "Visit scheduled",
   rescheduled: "Visit rescheduled",
   started: "Work started",
@@ -18,7 +19,9 @@ const EVENT_LABELS: Record<TimelineEvent["type"], string> = {
 function eventDetail(event: TimelineEvent, request: RequestDetail) {
   const window = event.meta?.visitWindow;
   if (window) return formatVisitWindow(window, request.timeZone);
-  return event.meta?.vendorId ? request.people[event.meta.vendorId] : undefined;
+  const vendor = event.meta?.vendorId ? request.people[event.meta.vendorId] : undefined;
+  const from = event.meta?.fromVendorId ? request.people[event.meta.fromVendorId] : undefined;
+  return from && vendor ? `${from} → ${vendor}` : vendor;
 }
 
 /** Vertical, oldest-first timeline of what happened to a request. */
@@ -27,7 +30,10 @@ export function RequestTimeline({ request }: { request: RequestDetail }) {
     <ol aria-label="Timeline" className="relative grid gap-5 border-l border-border pl-5">
       {request.timeline.map((event) => {
         // Seeded events often describe the vendor or window in their note already.
-        const detail = event.note ? undefined : eventDetail(event, request);
+        const detail =
+          event.note && event.type !== "vendor_reassigned"
+            ? undefined
+            : eventDetail(event, request);
         return (
           <li key={event.id} className="relative">
             <span

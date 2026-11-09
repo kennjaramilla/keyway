@@ -29,7 +29,7 @@ Then skim the test setup: `src/test/render.tsx` (`renderInWorkspace`), `cypress/
 
 ## Next steps
 
-- Build the cut stories: manager vendor reassignment UI and test (2.9), manager reassigns a building's coordinator (1.5), dashboard date range (5.2).
+- Build the cut stories: manager reassigns a building's coordinator (1.5).
 - A full Content-Security-Policy with nonces, a signed server session, and a shared store for the assistant's rate limit.
 - Code-split MSW out of the production bundle once a real API exists; add bundle and Web Vitals budgets.
 - Plug error tracking into `reportError` (the route error boundaries already call it) and report Web Vitals (see `PRODUCTION-READINESS.md`, phase 6).

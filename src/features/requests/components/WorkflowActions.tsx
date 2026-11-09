@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCurrentSession } from "@/features/session/hooks";
 import { can } from "@/lib/auth/permissions";
 import { useWorkflowAction } from "../hooks/useRequest";
-import { canStillReopen, TRANSITIONS, type RequestDetail } from "../schema";
+import { canChangeVendor, canStillReopen, TRANSITIONS, type RequestDetail } from "../schema";
 import type { Run } from "./workflow/ActionDialog";
 import { AssignDialog } from "./workflow/AssignDialog";
 import { CancelDialog } from "./workflow/CancelDialog";
@@ -26,9 +26,7 @@ export function WorkflowActions({ request }: { request: RequestDetail }) {
       (action) =>
         (action !== "request:reopen" || canStillReopen(request)) && can(user, action, request),
     );
-  const canAssign =
-    (request.status === "triaged" || request.status === "scheduled") &&
-    can(user, "request:assign", request);
+  const canAssign = canChangeVendor(request.status) && can(user, "request:assign", request);
 
   if (offered.length === 0 && !canAssign) return null;
 

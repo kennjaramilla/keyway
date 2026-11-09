@@ -157,6 +157,48 @@ describe("workflow actions", () => {
     expect((error as ApiError).problem.errors).toHaveProperty("vendorId");
   });
 
+  it("changes an assigned vendor with a reason, keeping status and visit window (2.9)", async () => {
+    signInAs("manager");
+    // KW-1023 is scheduled with Corner Appliance Repair.
+    const before = await api.get("/requests/req_023", requestDetailSchema);
+    const changed = await post("/requests/req_023/assign", {
+      vendorId: "ven_plumblevel",
+      reason: "Corner can't make the window.",
+    });
+    expect(changed).toMatchObject({
+      status: "scheduled",
+      vendorName: "Plumb & Level Handyman",
+      visitWindow: before.visitWindow,
+    });
+    expect(changed.timeline.at(-1)).toMatchObject({
+      type: "vendor_reassigned",
+      note: "Corner can't make the window.",
+      meta: { vendorId: "ven_plumblevel", fromVendorId: "ven_corner" },
+    });
+  });
+
+  it("allows a vendor change while work is in progress", async () => {
+    signInAs("coordinator");
+    // KW-1017 is in progress with Tidewater.
+    const changed = await post("/requests/req_017/assign", {
+      vendorId: "ven_plumblevel",
+      reason: "Tidewater didn't show up.",
+    });
+    expect(changed).toMatchObject({ status: "in_progress", vendorName: "Plumb & Level Handyman" });
+  });
+
+  it("rejects the same vendor or a missing reason when changing vendor", async () => {
+    signInAs("coordinator");
+    const errorsFor = (body: object) =>
+      post("/requests/req_014/assign", body).catch((caught: ApiError) => caught.problem.errors);
+    // KW-1014 already has Ironbark.
+    expect(await errorsFor({ vendorId: "ven_ironbark", reason: "Same again" })).toHaveProperty(
+      "vendorId",
+    );
+    expect(await errorsFor({ vendorId: "ven_tidewater" })).toHaveProperty("reason");
+    expect(await errorsFor({ vendorId: "ven_tidewater", reason: "no" })).toHaveProperty("reason");
+  });
+
   it("answers a malformed JSON body with 422", async () => {
     signInAs("resident");
     expect((await postRaw("/requests", "{not json")).status).toBe(422);
