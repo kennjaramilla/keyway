@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CoordinatorCoverage } from "@/features/buildings/components/CoordinatorCoverage";
 import { Dashboard } from "@/features/dashboard/components/Dashboard";
 import { RangePicker } from "@/features/dashboard/components/RangePicker";
 import { useDashboard, useDashboardRange } from "@/features/dashboard/hooks/useDashboard";
@@ -53,7 +54,10 @@ function DashboardScreen() {
           </div>
         }
       />
-      <Dashboard days={days} />
+      <div className="grid gap-6">
+        <Dashboard days={days} />
+        <CoordinatorCoverage />
+      </div>
     </>
   );
 }
