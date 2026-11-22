@@ -48,9 +48,11 @@ Status and hand-off notes. Update this file at the end of each work session.
 
 - Demo mode (ADR 0005): `NEXT_PUBLIC_DEMO_MODE=off` hides the people picker (SSO panel via `NEXT_PUBLIC_SSO_URL` instead) and makes MSW 404 `GET /demo/people` and `POST /session`; on by default, picker badged "Demo accounts · fake data".
 
+- Coordinator reassignment (1.5): `GET /buildings/coverage` and `POST /buildings/:id/coordinator { fromId, toId }`, manager only (`building:assign-coordinator`). `reassignmentConflict()` in `buildings/schema.ts` is the shared rule (409 `NOT_ASSIGNED`, `ALREADY_ASSIGNED`, `LAST_BUILDING`: a coordinator keeps at least one building so they can still sign in). The building's open requests move to the new coordinator; closed ones and existing chats keep the old one. The losing coordinator's session falls back to their first building on the next fetch. UI: `CoordinatorCoverage` card under the dashboard.
+
 **Next:**
 
-- Cut P1/P2 stories: manager reassigns a building's coordinator (1.5). The queue already renders as cards below `md` (6.4).
+- The queue already renders as cards below `md` (6.4).
 - Hardening: a full Content-Security-Policy with nonces (needs the inline theme script and MSW worker handled), a signed server session, a shared store for the assistant's rate limit, code-splitting MSW out of the production bundle, bundle and Web Vitals budgets, plugging error tracking into `reportError`.
 
 ## How to resume
